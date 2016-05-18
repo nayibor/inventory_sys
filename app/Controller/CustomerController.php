@@ -223,14 +223,14 @@ class CustomerController extends AppController {
     }
     
     public function view_products_back() {
-
-        $layout_title = "View Products";
+         $this->layout = "backbone";
+        $layout_title = "View Products Backbone";
         $this->set(compact('layout_title'));
     }
     
     public function view_products_merc() {
 
-        $layout_title = "View Products";
+        $layout_title = "View Products Mercury";
         $this->set(compact('layout_title'));
     }
 
