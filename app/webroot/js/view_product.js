@@ -1303,19 +1303,19 @@ var product={
         _this.configure_confirmation();
         _this.load_prod(product.load_url);
 
-        $("#reverse_reason").live('change',function(){
+         $(document).on("change","#reverse_reason",function(){
             transaction.reverse_reason=$('option:selected', this).val(); 
            
         });
         
         
-        $("#supplier").live('change',function(){
+         $(document).on("change","#supplier",function(){
             transaction.supplier=$('option:selected', this).val(); 
            
         });
         
 
-        $("#search_item").live('change',function(){
+         $(document).on("change","#search_item",function(){
             
             var stock      = parseInt($('option:selected', this).data('stock'));
             var unit_price = parseFloat($('option:selected', this).data('unit_price'));
@@ -1347,7 +1347,7 @@ var product={
         
         //this is where all the fun modification will begin 
         //will have a ripple effect on the  interface 
-        $(".item_for_sale").live('keyup',function(event){
+         $(document).on("keyup",".item_for_sale",function(event){
          
             var itemId=$(this).closest("tr").data('id');
             var item= transaction.getItem(itemId);
@@ -1370,7 +1370,7 @@ var product={
             
         });
         
-        $(".amount_paid_in").live('keyup',function(event){
+         $(document).on("keyup",".amount_paid_in",function(event){
             
             var amount_paid =$(this).val();
             var old_amount=transaction.amount_paid;
@@ -1389,7 +1389,7 @@ var product={
         
         
         //this is for archiving items
-        $(".iconlock").live('click',function(e){
+         $(document).on("click",".iconlock",function(e){
                    
             var data="id="+$(this).closest("tr").attr("id")+"&archive=archive_prod";
             _this.confirmation_action=function(){
@@ -1405,7 +1405,7 @@ var product={
         });
         
         //this is for unarchiving items
-        $(".iconopen").live('click',function(e){
+         $(document).on("click",".iconopen",function(e){
             var data="id="+$(this).closest("tr").attr("id")+"&archive=unarchive_prod";
             
             _this.confirmation_action=function(){
@@ -1419,13 +1419,13 @@ var product={
         });
         
         
-        $("span.pglink a").live('click',function(e) {
+         $(document).on("click","span.pglink a",function(e) {
             e.preventDefault();
             var link=$(this).attr('href');
             product.load_prod(link);  
         });
        
-        $("#search_butt").live('click',function(e) {
+         $(document).on("click","#search_butt",function(e) {
             e.preventDefault();
             _this.load_search_status="true";     
             product.load_prod(_this.load_url);
@@ -1441,7 +1441,7 @@ var product={
         }); 
         
        
-        $(".astock").live('keyup',function(e) {
+         $(document).on("keyup",".astock",function(e) {
             //  alert("checking");
             //   return;
 
@@ -1451,7 +1451,7 @@ var product={
 
         });
         
-        $(".ttype").live('change',function(e) {
+         $(document).on("change",".ttype",function(e) {
             //  alert("checking");
             e.preventDefault(); 
 
@@ -1465,7 +1465,7 @@ var product={
 		
 		
         //this is for adding or editing 
-        $(".tran_type").live('click',function(e) {
+         $(document).on("click",".tran_type",function(e) {
             e.preventDefault();
             var title ="";
             title=$(this).attr("title");
@@ -1483,9 +1483,8 @@ var product={
                 title:title,
                 width: 700,
                 height: 420,
-                position:"center",
                 closeOnEscape: false,
-                modal:false,
+                modal:true,
                 buttons: {
                     "Cancel": function() {
                         
@@ -1511,15 +1510,17 @@ var product={
                     }
                    
                 }
-            });	
+            });
             $dialog.dialog('open');
+            $dialog.parent('.ui-dialog').css('zIndex',9999);	
+            
 
         });
 
 		
 				
         //this is for adding or editing products
-        $("#add_prod,.edit_prod").live('click',function(e) {
+         $(document).on("click","#add_prod,.edit_prod",function(e) {
             e.preventDefault();
             
             if($(this).hasClass('edit_prod')){
@@ -1539,8 +1540,7 @@ var product={
                 title:title,
                 width: 500,
                 height: 300,
-                position:"center",
-                modal:false,
+                modal:true,
                 closeOnEscape: false,
                 buttons: {
                     "Cancel": function() {
@@ -1560,7 +1560,7 @@ var product={
         });     
         
      
-        $(".check").live('keyup',function(event) {
+         $(document).on("keyup",".check",function(event) {
           
             if (! (event.target.validity.valid)){
                 product.show_message("Please Enter Correct Value");

@@ -227,36 +227,36 @@ var settings={
         
         
         
-        $(".change_default").live('click',function(e){
+      
+       
+        $(document).on("click", ".change_default",function(e){		
 		e.preventDefault();
 		$val_data=$(this).closest("tr").attr("id");
 		settings.change_site($val_data);
 			});
-       
         
         
         
         
-        
-        $("#A_128").live('click',function(e){
+         $(document).on("click","#A_128",function(e){
                 
             settings.disable_okbutt_mgdialg();    
             settings.show_message("Logging Out");
-        })
+        });
         
         
-        $("#A_116").live('click',function(e){
+         $(document).on("click","#A_116",function(e){
             $("#UL_120").toggle(); 
             $("#UL_81").hide(); 
         });
         
-        $("#A_78").live('click',function(e){
+         $(document).on("click","#A_78",function(e){
             $("#UL_120").hide(); 
             $("#UL_81").toggle(); 
         });
         
         ///have to fix this stuff up really well and some fancy stuff to it 
-        $(".change_inst").live('click',function(e){
+         $(document).on("click",".change_inst",function(e){
 				
 			
             e.preventDefault();
@@ -317,7 +317,7 @@ var settings={
             
         })
         
-        $(".stn").live('click',function(e) {
+         $(document).on("click",".stn",function(e) {
             //  var _this=this;
 
             e.preventDefault();
