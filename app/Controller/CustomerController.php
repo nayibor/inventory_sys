@@ -233,6 +233,13 @@ class CustomerController extends AppController {
         $layout_title = "View Products Mercury";
         $this->set(compact('layout_title'));
     }
+    
+    
+    //this is the  entry point for the backbone application
+    public function backbone_entry(){
+		
+		}
+
 
     //this is for adding new products to the inventory system
     public function add_product() {

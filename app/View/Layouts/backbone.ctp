@@ -36,7 +36,7 @@ $categories = array_keys($links_array);
 
       //jquery scripts and other stuff
         echo $this->Html->script('jquery/jquery-1.12.3.js');
-        echo $this->Html->script('jquery/jquery-migrate-1.4.0.js');  
+     // echo $this->Html->script('jquery/jquery-migrate-1.4.0.js');  
         echo $this->Html->script('jquery/jquery-ui-1.11.4_jquery-ui.js');
         echo $this->Html->script('chosen.jquery.js');
  
@@ -54,6 +54,7 @@ $categories = array_keys($links_array);
      //backbone/underscore
        echo $this->Html->script('backbone/underscore.js');
 	   echo $this->Html->script('backbone/backbone.js');
+       echo $this->Html->script('backbone/backbone_stuff.js');
 
      
      

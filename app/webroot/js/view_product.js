@@ -12,7 +12,7 @@ $(document).ready(function(){
     printc = new PrintClient("localhost", "8083");
     //callbacks are being used for various printing functionality
     printc.onMessage=function(data){
-  console.log(data);
+    console.log(data);
 		if(data.type=="success"){
 		
 		product.perfrom_message_close_action();
@@ -31,7 +31,7 @@ $(document).ready(function(){
         console.log("Printer connected");
     };
 
-    printc.connect();
+    //printc.connect();
     
 
 })
@@ -856,9 +856,17 @@ var product={
         $(remove_link).attr("class","inlineIcon preferences iconDelete remove_item");
         $(remove_link).attr("href","#");
         $(remove_link).html("Remove");
-        $(remove_td).append(remove_link);      
-        $(remove_td).live('click',function(e) {
-            
+        $(remove_td).append(remove_link);
+		//alert("testing"); 
+        //console.log($(remove_td)); 
+        //rtd=$("#sales_info tr[data-id="+item.id+"] td").filter(":last"); 
+        //$(remove_td).live('click',function(e) {
+      //$rtd=$("#sales_info tr[data-id="+item.id+"] td").filter(":last");
+       
+        $(document).on("click",
+        "#sales_info tr[data-id="+item.id+"] td:last"
+        ,function(e) {
+			    
             _this.confirmation_action=function(){
                 _this.remove_item(item.id);   
             }  ;
@@ -1484,7 +1492,7 @@ var product={
                 width: 700,
                 height: 420,
                 closeOnEscape: false,
-                modal:true,
+                modal:false,
                 buttons: {
                     "Cancel": function() {
                         
@@ -1540,7 +1548,7 @@ var product={
                 title:title,
                 width: 500,
                 height: 300,
-                modal:true,
+                modal:false,
                 closeOnEscape: false,
                 buttons: {
                     "Cancel": function() {
