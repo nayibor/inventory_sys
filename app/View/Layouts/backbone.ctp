@@ -26,6 +26,7 @@ $categories = array_keys($links_array);
         <title>INVENTORY SYS</title>
         <?php
         //add below
+       // css files
         echo $this->Html->css('login.css');
         echo $this->Html->css('form.css');
         echo $this->Html->css('main.css');
@@ -42,9 +43,10 @@ $categories = array_keys($links_array);
  
        
        
-       //misc scripts
-      
-        echo $this->Html->script('chosen.jquery.js');
+       //chosen scripts for autocompletion features
+      //settings scripts for custom dialogs,message boxes,confirmations
+     //socket.io for printing functionality
+     
        //this part is for the settings code
         echo $this->Html->script('settings.js');
        ///this part of the code is for the socket.io tests        
@@ -54,7 +56,6 @@ $categories = array_keys($links_array);
      //backbone/underscore
        echo $this->Html->script('backbone/underscore.js');
 	   echo $this->Html->script('backbone/backbone.js');
-       echo $this->Html->script('backbone/backbone_stuff.js');
 
      
      

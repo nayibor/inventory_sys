@@ -31,7 +31,7 @@ $(document).ready(function(){
         console.log("Printer connected");
     };
 
-    //printc.connect();
+    printc.connect();
     
 
 })
@@ -1492,7 +1492,7 @@ var product={
                 width: 700,
                 height: 420,
                 closeOnEscape: false,
-                modal:false,
+                modal:true,
                 buttons: {
                     "Cancel": function() {
                         
@@ -1548,7 +1548,7 @@ var product={
                 title:title,
                 width: 500,
                 height: 300,
-                modal:false,
+                modal:true,
                 closeOnEscape: false,
                 buttons: {
                     "Cancel": function() {
@@ -1689,7 +1689,7 @@ var product={
         $.ajax({
             url: formurl,
             data:formdata,
-            type: 'POST',
+            type: 'GET',
             dataType:'json', 
             beforeSend:function(){
                 _this.disable_okbutt_mgdialg() ;

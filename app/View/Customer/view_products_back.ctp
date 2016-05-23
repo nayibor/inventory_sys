@@ -89,9 +89,12 @@
     <input type="hidden" name="product_batch_add_url" id="product_batch_add_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'batch_transaction')); ?>" />
     <input type="hidden" name="product_archive_url" id="product_archive_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'archive_product')); ?>" />
     <input type="hidden" name="transaction_print_list_url" id="transaction_print_list_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'get_print_info_list')); ?>" />
+    <input type="hidden" name="product_list_back" id="product_list_back" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'products')); ?>" />
 
 </div>
 
-<?php echo $this->Html->script('view_product.js'); ?>
+<?php
+          echo $this->Html->script('backbone/backbone_stuff.js');
+		//echo $this->Html->script('view_product_back.js'); ?>
 
 

@@ -236,9 +236,143 @@ class CustomerController extends AppController {
     
     
     //this is the  entry point for the backbone application
-    public function backbone_entry(){
+    //http method will determine the kinod of transaction
+    //first function with no parameters is for get and post 
+    /**
+     *GET  /muppets/ ...... Reads all Muppets.
+      POST /muppets/ ...... Creates a new Muppet.
+      GET  /muppets/:id ... Reads a Muppet.
+      PUT  /muppets/:id ... Updates a Muppet.
+      DEL  /muppets/:id ... Destroys a Muppet. 
+     * 
+     * 
+     */
+    public function products($product_id = null){
+		
+		$this->autoLayout = false;
+		$type=$this->request->method();
+        $filter = isset($_GET['filter']) && $_GET['filter'] != "null" ? $_GET['filter'] : "";
+        $arch_stat = isset($_GET['arch_stat']) && $_GET['arch_stat'] != "" ? $_GET['arch_stat'] : "";
+                                				
+	    switch ($type) {
+		case "GET":
+		
+		$resp=$this->get_products_back($arch_stat,$filter,$product_id);
+	    echo $resp;
+	    exit();
+		break;
+		 
+		case "POST":
+		
+		$resp=$this->create_product_back();
+		echo $resp;
+		exit();
+		break;
+		 
+	    case "PUT":
+	    
+	    $resp=$this->create_product_back($product_id);
+		echo $resp;
+		exit();
+		break;
+		 
+		case "DEL":
+		
+		$resp=$this->delete_product($product_id);
+		echo $resp;
+		exit();
+		break;
+		  	
+			
+			}	
 		
 		}
+
+//this will be used for archiving products
+  function delete_product($product_id){
+	  
+	  
+	    $product=$this->Product->findById($product_id);
+	    $archive_status=$product['Product']['archive_status'];
+	    if($archive_status=="1")
+	    {  $new_archive_status="0";}
+	    else
+	    {$new_archive_status="1";}
+	 
+                $this->Product->set(array(
+                    'id' => $product_id,
+                    'archive_status' =>$new_archive_status
+                ));
+                if ($prod_save=$this->Product->save()) {
+                    return json_encode($prod_save);
+                } else {
+                    echo json_encode("Couldent save .Please try again.");
+                }
+            
+	   }
+
+//this is for creating a new product backbone style
+//this will be changed so that every edit will be done from a session  variable 
+///this will prevent people from playing with the dom and inserting their own data
+   function create_product_back($product_id=null){
+	        
+	        $memberdata = $this->Session->read('memberData');
+	        $prod_data = $_POST['data']['Product'];
+	        if($product_id !=null){
+		    $prod_data['id']=$product_id;	
+				}
+			else{
+			$prod_data['date_created'] = date('Y-m-d H:i:s');
+				}
+	        $prod_data = $_POST['data']['Product'];
+            $prod_data['inst_id'] = $this->Session->read('inst_id');
+            $prod_data['site_id'] = $this->Session->read('site_id');
+            $prod_data['user_id'] = $memberdata['User']['id'];
+            $prod_save=$this->Product->save($prod_data);
+            return json_encode($prod_save);
+	   
+	   }
+
+
+//this is for getting a product/products backbone style
+//will have to write some code later for error handing
+    function get_products_back($arch_stat,$filter,$product_id){
+		
+		$conditions_array = array(
+        
+            'Product.inst_id' => $this->Session->read('inst_id'),
+            'Product.site_id' => $this->Session->read('site_id'),
+            'Product.archive_status LIKE' => "%" . $arch_stat . "%",
+            'OR' => array(
+                'Product.product_name LIKE' => "%" . $filter . "%"
+                ));		
+        	 
+		if($product_id!=null)
+		 {
+		$product=$this->Product->findById($product_id);
+		    //$product=$this->Product->find("first",array("conditions"=>array("Product.id"=>$product_id)));
+		return json_encode($product['Product']);
+			
+			 }
+		else{
+			    $this->paginate = array(
+                'Product' => array(
+                    'conditions' => $conditions_array,
+                    'order' => array('Product.id' => 'desc'),
+                    'limit' => 10));
+        $products=$this->paginate('Product');
+        $response_array=array();
+        foreach($products as $val){
+			
+		$val['Product']['category']=$val['Category']['short_name'];	
+		$response_array[]=$val['Product'];
+			};
+	    return json_encode(array("products"=>$response_array));	    
+			 }
+		
+		}
+      
+
 
 
     //this is for adding new products to the inventory system
@@ -253,8 +387,8 @@ class CustomerController extends AppController {
             );
       
 
-        if (isset($_GET['save_prod'])) {
-            $prod_data = $_GET['data']['Product'];
+        if (isset($_POST['save_prod'])) {
+            $prod_data = $_POST['data']['Product'];
             $prod_data['inst_id'] = $this->Session->read('inst_id');
             $prod_data['site_id'] = $this->Session->read('site_id');
             $prod_data['user_id'] = $memberdata['User']['id'];
