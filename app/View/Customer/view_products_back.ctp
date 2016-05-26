@@ -13,6 +13,39 @@
     }
 </style>
 
+
+<script type="text/template" id="prod_tmpl">
+<tr id="<%= id %>" class="even">
+<td><%= product_name %></td>
+<td><%= stock_available %></td>
+<td><%= quantity_crate %></td>
+<td>0</td>
+<td>0</td>
+<td><%= min_stock_notif %></td>
+<td><%= max_stock_notif %></td>
+<td><%= category_product %></td>
+<td><%= cost_price  %></td>
+<td><%= selling_price  %></td>
+<td>
+<ul class="rowActions">
+<li><a href="#" class="inlineIcon preferences edit_prod">Edit</a></li>
+<li><a href="#" class="inlineIcon preferences iconlock">Archive</a></li>
+</ul>
+</td>
+<td></td>
+<td></td> 
+<td></td>
+</tr>
+</script>
+
+
+
+
+
+
+
+
+
 <div class='tableWrapper'>
     <div class='tableHeader'>
         <ul class='tableActions'>
@@ -69,9 +102,55 @@
     </div>
 
 
-    <div name="table_info" id="table_info">
+<table cellspacing='0' summary='' name="table_info" id="table_info">
+    <thead>
+        <tr>
 
-    </div>
+            <th class="sortup">
+               Name
+            </th>
+            <th class="sortup">
+              Stock
+            </th>
+ <th class="sortup">
+              Quant/Batch
+            </th>
+ <th class="sortup">
+              Batch/Avl
+            </th>
+ <th class="sortup">
+             Rmd
+            </th>
+ <th class="sortup">
+             Stock Notification
+            </th>
+ <th class="sortup">
+             Max Stock
+            </th>
+            <th> Category </th>
+
+            <th > Cost Pr</th>
+            <th  >
+Selling Pr
+            </th>
+            <th class='last alignRight'>
+
+            </th><th></th><th></th><th></th>
+        </tr>
+    </thead>
+
+
+
+
+    <tbody name="table_info_tbody" id="table_info_tbody">
+    
+      </tbody>
+</table>
+
+
+
+
+
 
     <div name="dialog-message" id="dialog-message" title="Message">
         <p class="messsage">
@@ -94,6 +173,9 @@
 </div>
 
 <?php
+		
+			//templates
+          //echo $this->element('backbone_temp/product_list_template');
           echo $this->Html->script('backbone/backbone_stuff.js');
 		//echo $this->Html->script('view_product_back.js'); ?>
 

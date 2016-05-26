@@ -63,7 +63,7 @@ Selling Pr
                 </td>
 
       <td>
- <?php echo $val['Product']['stock_available']%$val['Product']['quantity_crate']; ?>
+ <?php echo $val['Product']['stock_available']/$val['Product']['quantity_crate']; ?>
 </td>
 
 <td>

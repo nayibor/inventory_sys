@@ -263,8 +263,8 @@ class CustomerController extends AppController {
 		break;
 		 
 		case "POST":
-		
-		$resp=$this->create_product_back();
+		$data=$this->request->data;
+		$resp=$this->create_product_back($data);
 		echo $resp;
 		exit();
 		break;
@@ -278,7 +278,7 @@ class CustomerController extends AppController {
 		 
 		case "DEL":
 		
-		$resp=$this->delete_product($product_id);
+		$resp=$this->delete_product_back($product_id);
 		echo $resp;
 		exit();
 		break;
@@ -289,7 +289,7 @@ class CustomerController extends AppController {
 		}
 
 //this will be used for archiving products
-  function delete_product($product_id){
+  function delete_product_back($product_id){
 	  
 	  
 	    $product=$this->Product->findById($product_id);
@@ -314,17 +314,16 @@ class CustomerController extends AppController {
 //this is for creating a new product backbone style
 //this will be changed so that every edit will be done from a session  variable 
 ///this will prevent people from playing with the dom and inserting their own data
-   function create_product_back($product_id=null){
+   function create_product_back($product_data){
 	        
 	        $memberdata = $this->Session->read('memberData');
-	        $prod_data = $_POST['data']['Product'];
-	        if($product_id !=null){
-		    $prod_data['id']=$product_id;	
+	        $prod_data =$product_data;
+	        if(isset($product_data['id']) and  $product_data['id']!=null){
+		    $prod_data['id']=$product_data['id'];	
 				}
 			else{
 			$prod_data['date_created'] = date('Y-m-d H:i:s');
 				}
-	        $prod_data = $_POST['data']['Product'];
             $prod_data['inst_id'] = $this->Session->read('inst_id');
             $prod_data['site_id'] = $this->Session->read('site_id');
             $prod_data['user_id'] = $memberdata['User']['id'];
