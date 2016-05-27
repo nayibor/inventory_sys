@@ -19,13 +19,6 @@ var backbone_stuff={
 	
 	 }, 
 	 
-	 load_temp:function(){
-		 
-	 $(".temp").hide(); 
-     console.log($('#prod_tmpl').html());	 
-		
-	 },
-	 
 			
 	 backbone_product_mod_init:function(){
 		
@@ -58,13 +51,32 @@ var backbone_stuff={
 	 
 	 this.listenTo(this.model, 'destroy', this.remove);
 	 },
+	 events: {
+     'click .iconlock': 'onRemove',
+     'click .edit_prod': 'onEdit'
+
+	 },
 	 
 	 render: function() {	 
      
      var html = this.template(this.model.toJSON());
      this.$el.html(html);
      return this;
-	 }
+	 },
+	 
+	 onEdit:   function(evt){
+	 },
+	 onRemove: function(evt) {
+		 
+     this.model.destroy(
+     /**error:function(model,response,options){
+	 console.log("model could not be destroyed successfully");
+	 },
+     success:function(model,response,options){
+	 console.log("model destroyed successfully");
+	 }**/
+	 );  
+     }
 	 });
 	
 	
@@ -72,7 +84,7 @@ var backbone_stuff={
     ////this is for the whole collection of the productlist
 	
      var ProductListView = Backbone.View.extend({
-	 el: '#table_info',
+	 el: '.tableWrapper',
 
      initialize: function() {
      
@@ -82,21 +94,32 @@ var backbone_stuff={
     render: function() {
 		
 	_this=this;	
-    alert("rendering");
     var $list = this.$('#table_info_tbody').empty();
+    //i=2;
     this.collection.each(function(model) {
     var item = new ProductsItemView({model: model});
+   // item.className=(i%2==0)? "even" : "odd";
     $list.append(item.render().$el);
+    i++;
     }, this);
 
     return this;
     },
-
+    
     events: {
-    'click #add_prod': 'onCreate'
+    'click #add_prod': 'onCreate',
+    'click .tran_type': 'setupTransaction'
     },
 
+
+    setupTransaction:function(evt){
+		/**add_prod,add_sales,add_recv,add_inv,add_revr**/
+		console.log(evt);
+		
+    },
+    
     onCreate: function() {
+		
     var $name = "product_name";
     var $user_id = 1;
 
@@ -112,17 +135,8 @@ var backbone_stuff={
 	}
 	});
 	
-	
-	
-	
-	
-	
-	
-	
-	//this is for actual div which will hold all the list items
-	
-	
-	
+		
+
 	//for creating instance of collection object and view object
    // use reset instead of fetch for bootstraping
 	 var product_list = new ProductsCollection;

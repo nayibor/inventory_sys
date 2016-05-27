@@ -5,10 +5,7 @@
         $user_links = $this->Session->read('user_links');
         $user_roles = $this->Session->read('role_short_array');
         $mem_data = $this->Session->read('memberData');
-        //print_r($user_links);
-        //exit();
 		$links_array = array();
-		//$roles_array = array();
 
 
 foreach ($user_links as $val) {
