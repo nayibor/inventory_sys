@@ -15,6 +15,8 @@
 
 <?php     
        echo $this->element('backbone_temp/product_list_template');
+	   echo $this->element('backbone_temp/paginate_template');
+
 ?>
 
 <div class='tableWrapper'>
@@ -94,6 +96,9 @@
 </thead>
 <tbody name="table_info_tbody" id="table_info_tbody"></tbody>
 </table>
+<div id="page_outer_div">
+</div>
+
     <div name="dialog-message" id="dialog-message" title="Message">
         <p class="messsage">
         </p>

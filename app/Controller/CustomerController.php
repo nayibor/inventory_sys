@@ -8,8 +8,8 @@
 class CustomerController extends AppController {
 
     public $name = 'Customer';
-    public $helpers = array('Html','Form','Session');
-    public $components = array('RequestHandler', 'Session');
+    //public $helpers = array('Html','Form','Session','Paginator');
+    //public $components = array('RequestHandler', 'Session');
     public $uses = array("ReverseReason", "Invoice", "Sale", "Receipt", "Taxe", "Supplier", "Category", 'Site', 'Product', 'ProductTransaction');
     public $layout = 'dashboard';
 
@@ -261,7 +261,10 @@ class CustomerController extends AppController {
 	    echo $resp;
 	    exit();
 		break;
-		 
+	
+	
+	//have to filter this out and see where i may be adding 
+   // information which may be unnecessary
 		case "POST":
 		$data=$this->request->data;
 		$resp=$this->create_product_back($data);
@@ -360,20 +363,21 @@ class CustomerController extends AppController {
                     'order' => array('Product.id' => 'desc'),
                     'limit' => 10));
         $products=$this->paginate('Product');
+        //print_r($products);
+		$paginate_data=array();
+        $paginate_data['page']=$this->request->params['paging']['Product']['page'];
+        $paginate_data['pageCount']=$this->request->params['paging']['Product']['pageCount'];
         $response_array=array();
         foreach($products as $val){
 			
 		$val['Product']['category']=$val['Category']['short_name'];	
 		$response_array[]=$val['Product'];
 			};
-	    return json_encode(array("products"=>$response_array));	    
+	    return json_encode(array("pagination"=>$paginate_data,"products"=>$response_array));	    
 			 }
 		
 		}
       
-
-
-
     //this is for adding new products to the inventory system
     public function add_product() {
         $this->autoLayout = false;
@@ -1223,7 +1227,7 @@ class CustomerController extends AppController {
             $prods = $this->paginate('Product');
             echo ($paginate_link);
         }
-
+		//print_r($this->request->params['paging']['Product']);
 
         $this->set(compact('prods', 'categories'));
     }
