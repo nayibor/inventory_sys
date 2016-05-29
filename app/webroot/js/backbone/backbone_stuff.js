@@ -23,7 +23,19 @@ var backbone_stuff={
 			
 	 backbone_product_mod_init:function(){
 		
-	 _this=this;		
+	 _this=this;	
+	 
+	 
+	 //for settting up pagination model to pass around paging data
+	 var PageModel = Backbone.Model.extend({
+	 defaults: {
+     query :null,
+	 pagination: null,
+	 url:_this.list_url
+     }
+     });
+	 
+	 //for setting up the basic product model stuff	
 	 var ProductModel = Backbone.Model.extend({
 	 defaults: {
      id:null,
@@ -31,17 +43,13 @@ var backbone_stuff={
 	 user_id:null
      }
      });
-		
-	 //for collection object	
-	 var ProductsCollection = Backbone.Collection.extend({
-     url: _this.list_url,
-     model: ProductModel,
-     pagination:{},
+	   
+	
+	 //for basic collection object with meta facilities
+	 var MetaCollection = Backbone.Collection.extend({
      _meta:[],
      parse: function(data) {
-	 this.meta('pagination',(data.pagination) ? data.pagination : {});		 
-     return data.products;
-     },
+	 },
      meta: function(prop, value) {
         if (value === undefined) {
             return this._meta[prop]
@@ -49,6 +57,25 @@ var backbone_stuff={
             this._meta[prop] = value;
         }
      }
+	 });
+	   	
+	   	
+	 //for collection object	
+	 var ProductsCollection = MetaCollection.extend({
+     url: _this.list_url,
+     model: ProductModel,
+     initialize: function() {
+		 
+	 this.on('page_data',this.reload_data);	 
+	 },
+     parse: function(data) {
+	 this.meta('pagination',(data.pagination) ? data.pagination : {});
+     this.meta('orig_url',_this.list_url);	
+     return data.products;
+     },
+     reload_data:function(event){
+	 alert("going crazy.!!"+event);
+	 }
 	 });		
 	
 	
@@ -57,30 +84,25 @@ var backbone_stuff={
      var PaginateView= Backbone.View.extend({
 	 tagname:'div',
 	 id:'page_div',
+	 model:PageModel,
 	 template: _.template($('#paginate_tmpl').html()),
 	 
 	 render:function(){	 
 		 	 
 	 var pass_data={
-	 query:this.collection.meta('query'),
-	 url:this.collection.url,
-	 paginate:this.collection.meta('pagination')
+	 query:this.model.get('query'),
+	 url:this.model.get('url'),
+	 paginate:this.model.get('pagination')
 	 };
 	 console.log(pass_data);
      var html = this.template(pass_data);
      this.$el.html(html);
      return this;
-	 },
-	 events:{
-	 'click span.pglink a' : 'onPage'	 
-	 }, 
-	 onPage:function(event){
-	 //event.preventDefa
 	 }
 	 });
 	
 	
-	//for a single product_list_item
+	//view for a single product_list_item
 	 var ProductsItemView = Backbone.View.extend({
      tagName: 'tr',
      id:function(){return this.model.get( 'id')},
@@ -130,11 +152,12 @@ var backbone_stuff={
      initialize: function() {
      
      this.listenTo(this.collection, 'sync', this.render);
+     
 	 },
 
      render: function() {
-		
-	 _this=this;	
+	 console.log("rendering");
+	 _this_list=this;	
      var $list = this.$('#table_info_tbody').empty();
      var $page = this.$('#page_outer_div').empty();
      var i = 2 ; 
@@ -148,34 +171,67 @@ var backbone_stuff={
 	 var val = $("#search_prod").val();
      var archive_status=$("#enable_archive_status").val();
      var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;
-     this.collection.meta('query',query_string);
-	 var page = new PaginateView({collection:this.collection});
+	 var page = new PaginateView({model:new PageModel({
+	 query:query_string,
+	 pagination:_this_list.collection.meta('pagination')})});
 	 $page.append(page.render().$el);
-	 console.log("almost done with render");
      return this;
     
      },
     
-    events: {
-    'click #add_prod'   : 'onCreate',
-    'click .tran_type'  : 'setupTransaction',
-    'keyup #search_prod': 'nameSearch',
-    'click #search_butt': 'otherSearch'
-    },
+     events: {
+     'click #add_prod'   : 'onCreate',
+     'click .tran_type'  : 'setupTransaction',
+     'keyup #search_prod': 'searchKey',
+     'click #search_butt': 'otherSearch',
+     'click span.pglink a' : 'onPage'	 
 
-	otherSearch:function(){
-		
-	},
-
-	nameSearch:function(){
-		
-	},
-
-    setupTransaction:function(evt){
+     },
+     
+     searchPage:function(url){
+		 
+	 this.collection.url=url;
+	 this.collection.fetch({wait:true,
+     error:function(model,response,options){
+		 console.log("error");
+		 console.log(response.data);
+		 },
+     success:function(model,response,options){
+        //pagination=(response.pagination) ? response.pagination : {};
+		//console.log(this.pagination);
+		}
+		});	 
+	 },
+	 
+	 searchKey:function(event){
+	 event.preventDefault();
+            if(event.which==13){
+	 var val = $("#search_prod").val();
+     var archive_status=$("#enable_archive_status").val();
+     var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;	
+     this.searchPage(this.collection.meta('orig_url')+"?"+query_string);
+	 }
+	 },
+	 
+     onPage:function(event){
+	 event.preventDefault();
+	 //console.log(event.currentTarget);
+     this.searchPage(event.currentTarget.href);
+	 },
+	 
+	 otherSearch:function(event){
+     event.preventDefault();
+	 var val = $("#search_prod").val();
+     var archive_status=$("#enable_archive_status").val();
+     var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;	
+     this.searchPage(this.collection.meta('orig_url')+"?"+query_string);
+	 },
+	 
+     setupTransaction:function(evt){
 		/**add_prod,add_sales,add_recv,add_inv,add_revr**/
 		console.log(evt);
 		
-    },
+     },
     
     onCreate: function() {
 		

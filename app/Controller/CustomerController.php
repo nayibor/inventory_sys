@@ -247,22 +247,25 @@ class CustomerController extends AppController {
      * 
      * 
      */
-    public function products($product_id = null){
+    public function products($paginate_link=null){
 		
 		$this->autoLayout = false;
 		$type=$this->request->method();
-        $filter = isset($_GET['filter']) && $_GET['filter'] != "null" ? $_GET['filter'] : "";
-        $arch_stat = isset($_GET['arch_stat']) && $_GET['arch_stat'] != "" ? $_GET['arch_stat'] : "";
+		$filter_query=$this->request->query('filter');
+		$arch_query=$this->request->query('arch_stat');
+		$page=$this->request->query('page');
+        $filter = isset($filter_query) && $filter_query != "null" ? $filter_query : "";
+        $arch_stat = isset($arch_query) && $arch_query != "" ? $arch_query : "";
+                                		
                                 				
 	    switch ($type) {
 		case "GET":
 		
-		$resp=$this->get_products_back($arch_stat,$filter,$product_id);
+		$resp=$this->get_products_back($arch_stat,$filter,$page,$paginate_link);
 	    echo $resp;
 	    exit();
 		break;
-	
-	
+		
 	//have to filter this out and see where i may be adding 
    // information which may be unnecessary
 		case "POST":
@@ -338,7 +341,7 @@ class CustomerController extends AppController {
 
 //this is for getting a product/products backbone style
 //will have to write some code later for error handing
-    function get_products_back($arch_stat,$filter,$product_id){
+    function get_products_back($arch_stat,$filter,$page=null,$paginate_link=null){
 		
 		$conditions_array = array(
         
@@ -348,7 +351,7 @@ class CustomerController extends AppController {
             'OR' => array(
                 'Product.product_name LIKE' => "%" . $filter . "%"
                 ));		
-        	 
+        	/** 
 		if($product_id!=null)
 		 {
 		$product=$this->Product->findById($product_id);
@@ -356,17 +359,33 @@ class CustomerController extends AppController {
 		return json_encode($product['Product']);
 			
 			 }
+		**/	
+		
+		if ($page != null) {
+        //echo "pageis--link".$page;
+        $this->paginate = array(
+                'Product' => array(
+                    'conditions' => $conditions_array,
+                    'order' => array('Product.id' => 'desc'),
+                    'page' => $page,
+                    'limit' => 10));
+        $products = $this->paginate('Product');    
+        }
 		else{
+		//echo "no--link".$page;	
 			    $this->paginate = array(
                 'Product' => array(
                     'conditions' => $conditions_array,
                     'order' => array('Product.id' => 'desc'),
                     'limit' => 10));
         $products=$this->paginate('Product');
-        //print_r($products);
+         }
+        //print_r($this->request->params['paging']);
 		$paginate_data=array();
         $paginate_data['page']=$this->request->params['paging']['Product']['page'];
         $paginate_data['pageCount']=$this->request->params['paging']['Product']['pageCount'];
+        $paginate_data['prevPage']=$this->request->params['paging']['Product']['prevPage'];
+        $paginate_data['nextPage']=$this->request->params['paging']['Product']['nextPage'];
         $response_array=array();
         foreach($products as $val){
 			
@@ -374,7 +393,6 @@ class CustomerController extends AppController {
 		$response_array[]=$val['Product'];
 			};
 	    return json_encode(array("pagination"=>$paginate_data,"products"=>$response_array));	    
-			 }
 		
 		}
       
@@ -1217,7 +1235,7 @@ class CustomerController extends AppController {
                     'page' => $page_array[1],
                     'limit' => 10));
             $prods = $this->paginate('Product');
-            echo ($paginate_link);
+            //print_r($this->request->params['paging']);
         } else {
             $this->paginate = array(
                 'Product' => array(
@@ -1225,7 +1243,7 @@ class CustomerController extends AppController {
                     'order' => array('Product.id' => 'desc'),
                     'limit' => 10));
             $prods = $this->paginate('Product');
-            echo ($paginate_link);
+            //print_r($this->request->params['paging']);
         }
 		//print_r($this->request->params['paging']['Product']);
 
