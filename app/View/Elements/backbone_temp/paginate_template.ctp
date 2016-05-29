@@ -1,8 +1,12 @@
+<!--
 
+this template is a template for pagination 
+combination of cakephp,underscore tempate
+-->
 
 <script type="text/template" id="paginate_tmpl">
    
-   <%   if(paginate.page==1 && !paginate.prevPage)  {    %>
+   <%   if(paginate.page!=paginate.pageCount && paginate.page==1 && !paginate.prevPage && paginate.nextPage)  {    %>
     
     <span class="pglink"><< previous </span>
     <span class="pglink"><a href="<%= url+"?page="+(paginate.page+1)+"&"+query %>">next >></a></span>
@@ -15,7 +19,11 @@
     <span class="pglink"><a href="<%= url+"?page="+(paginate.page+1)+"&"+query %>" rel="next">next >></a></span>
     <span class="pglink"><a href="<%= url+"?page="+paginate.pageCount+"&"+query %>" rel="last">last ></a></span>
 
-  <%    }else if(paginate.page==paginate.pageCount && !paginate.nextPage){    %>
+  <%    }else if(paginate.page==paginate.pageCount && !paginate.nextPage && !paginate.prevPage){    %>
+    <span class="pglink"><< previous</span>  
+    <span class="pglink">next >></span>  
+
+  <%    }else if(paginate.page==paginate.pageCount && !paginate.nextPage && paginate.prevPage){    %>
    
     <span class="pglink"><a href="<%= url+"?"+query %>">< first</a></span>
     <span class="pglink"><a href="<%= url+"?page="+(paginate.page-1)+"&"+query %>"><< previous</a></span>

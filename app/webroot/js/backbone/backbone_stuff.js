@@ -189,16 +189,25 @@ var backbone_stuff={
      },
      
      searchPage:function(url){
+		  
+	 var val = $("#search_prod").val();
+     var archive_status=$("#enable_archive_status").val();
+     var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;	
+   	 url_send=url+"?"+query_string;
 		 
-	 this.collection.url=url;
+	 this.collection.url=url_send;
 	 this.collection.fetch({wait:true,
-     error:function(model,response,options){
-		 console.log("error");
-		 console.log(response.data);
-		 },
-     success:function(model,response,options){
-        //pagination=(response.pagination) ? response.pagination : {};
-		//console.log(this.pagination);
+	 beforeSend(){
+     settings.disable_okbutt_mgdialg() ;
+     settings.show_message("Retrieving Details..."); 
+	 },
+     error:function(collection,response,options){
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Error<br>"+"Please Try Again");	
+	 },
+     success:function(collections,response,options){
+		  settings.close_message_diag();
+          settings.enable_okbutt_mgdialg();
 		}
 		});	 
 	 },
@@ -206,10 +215,7 @@ var backbone_stuff={
 	 searchKey:function(event){
 	 event.preventDefault();
             if(event.which==13){
-	 var val = $("#search_prod").val();
-     var archive_status=$("#enable_archive_status").val();
-     var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;	
-     this.searchPage(this.collection.meta('orig_url')+"?"+query_string);
+	 this.searchPage(this.collection.meta('orig_url'));
 	 }
 	 },
 	 
@@ -221,10 +227,7 @@ var backbone_stuff={
 	 
 	 otherSearch:function(event){
      event.preventDefault();
-	 var val = $("#search_prod").val();
-     var archive_status=$("#enable_archive_status").val();
-     var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;	
-     this.searchPage(this.collection.meta('orig_url')+"?"+query_string);
+	 this.searchPage(this.collection.meta('orig_url'));
 	 },
 	 
      setupTransaction:function(evt){
