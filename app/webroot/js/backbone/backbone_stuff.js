@@ -23,7 +23,7 @@ var backbone_stuff={
 			
 	 backbone_product_mod_init:function(){
 		
-	 _this=this;	
+	 _this_back=this;	
 	 
 	 
 	 //for settting up pagination model to pass around paging data
@@ -45,7 +45,7 @@ var backbone_stuff={
      });
 	   
 	
-	 //for basic collection object with meta facilities
+	 //for basic collection extends  object with meta facilities
 	 var MetaCollection = Backbone.Collection.extend({
      _meta:[],
      parse: function(data) {
@@ -62,20 +62,16 @@ var backbone_stuff={
 	   	
 	 //for collection object	
 	 var ProductsCollection = MetaCollection.extend({
-     url: _this.list_url,
+     url: _this_back.list_url,
      model: ProductModel,
      initialize: function() {
 		 
-	 this.on('page_data',this.reload_data);	 
 	 },
      parse: function(data) {
 	 this.meta('pagination',(data.pagination) ? data.pagination : {});
-     this.meta('orig_url',_this.list_url);	
+    
      return data.products;
-     },
-     reload_data:function(event){
-	 alert("going crazy.!!"+event);
-	 }
+     }
 	 });		
 	
 	
@@ -94,7 +90,7 @@ var backbone_stuff={
 	 url:this.model.get('url'),
 	 paginate:this.model.get('pagination')
 	 };
-	 console.log(pass_data);
+	 //console.log(pass_data);
      var html = this.template(pass_data);
      this.$el.html(html);
      return this;
@@ -114,7 +110,8 @@ var backbone_stuff={
 	 this.listenTo(this.model, 'destroy', this.remove);
 	 },
 	 events: {
-     'click .iconlock': 'onRemove',
+     'click .iconlock': 'onArch',
+     'click .iconopen': 'onArch',
      'click .edit_prod': 'onEdit'
 
 	 },
@@ -127,9 +124,26 @@ var backbone_stuff={
 	 },
 	 
 	 onEdit:   function(evt){
+	 this.model.fetch({wait:true,
+     error:function(model,response,options){
+		 console.log("error");
+		 },
+     success:function(model,response,options){
+     
+     console.log(response);
+      console.log(model.get('product_name'));
+	
+     	}
+		}); 
 	 },
 	 
-	 onRemove: function(evt) {
+	 onArch:function(event){
+		 
+     console.log(this.model.get('archive_status'));
+		 
+	 },
+	 
+	 onRemove: function(event) {
 		 
      this.model.destroy(
      /**error:function(model,response,options){
@@ -194,9 +208,10 @@ var backbone_stuff={
      var archive_status=$("#enable_archive_status").val();
      var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;	
    	 url_send=url+"?"+query_string;
-		 
-	 this.collection.url=url_send;
+	 console.log(url_send);
+	 //this.collection.url=url_send;
 	 this.collection.fetch({wait:true,
+	 url:url_send,
 	 beforeSend(){
      settings.disable_okbutt_mgdialg() ;
      settings.show_message("Retrieving Details..."); 
@@ -204,6 +219,7 @@ var backbone_stuff={
      error:function(collection,response,options){
 	 settings.enable_okbutt_mgdialg();
 	 settings.show_message("Error<br>"+"Please Try Again");	
+	 
 	 },
      success:function(collections,response,options){
 		  settings.close_message_diag();
@@ -215,7 +231,7 @@ var backbone_stuff={
 	 searchKey:function(event){
 	 event.preventDefault();
             if(event.which==13){
-	 this.searchPage(this.collection.meta('orig_url'));
+	 this.searchPage(this.collection.url);
 	 }
 	 },
 	 
@@ -227,7 +243,7 @@ var backbone_stuff={
 	 
 	 otherSearch:function(event){
      event.preventDefault();
-	 this.searchPage(this.collection.meta('orig_url'));
+	 this.searchPage(this.collection.url);
 	 },
 	 
      setupTransaction:function(evt){
@@ -258,13 +274,17 @@ var backbone_stuff={
 	 var product_list = new ProductsCollection;
 	 var productView = new ProductListView({collection: product_list});
 	 product_list.fetch({wait:true,
-     error:function(model,response,options){
-		 console.log("error");
-		 console.log(response.data);
-		 },
-     success:function(model,response,options){
-        //pagination=(response.pagination) ? response.pagination : {};
-		//console.log(this.pagination);
+	 beforeSend(){
+     settings.disable_okbutt_mgdialg() ;
+     settings.show_message("Retrieving Details..."); 
+	 },
+     error:function(collection,response,options){
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Error<br>"+"Please Try Again");	
+	 },
+     success:function(collections,response,options){
+		  settings.close_message_diag();
+          settings.enable_okbutt_mgdialg();
 		}
 		});
 	 //product_list.reset(<%= @product_list.to_json %>);

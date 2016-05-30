@@ -247,7 +247,7 @@ class CustomerController extends AppController {
      * 
      * 
      */
-    public function products($paginate_link=null){
+    public function products($product_id=null){
 		
 		$this->autoLayout = false;
 		$type=$this->request->method();
@@ -260,9 +260,12 @@ class CustomerController extends AppController {
                                 				
 	    switch ($type) {
 		case "GET":
-		
-		$resp=$this->get_products_back($arch_stat,$filter,$page,$paginate_link);
-	    echo $resp;
+		if($product_id != null){
+		$resp=$this->get_product_single_info($product_id);
+		}else{
+		$resp=$this->get_products_back($arch_stat,$filter,$page);
+		}
+		echo $resp;	
 	    exit();
 		break;
 		
@@ -338,10 +341,19 @@ class CustomerController extends AppController {
 	   
 	   }
 
+//this is used for getting a single product info 
+  function get_product_single_info($product_id){
+		
+			$product=$this->Product->findById($product_id);
+		    //$product=$this->Product->find("first",array("conditions"=>array("Product.id"=>$product_id)));
+		    return json_encode($product['Product']);
+	  
+	   }
+
 
 //this is for getting a product/products backbone style
 //will have to write some code later for error handing
-    function get_products_back($arch_stat,$filter,$page=null,$paginate_link=null){
+    function get_products_back($arch_stat,$filter,$page=null){
 		
 		$conditions_array = array(
         
@@ -351,15 +363,7 @@ class CustomerController extends AppController {
             'OR' => array(
                 'Product.product_name LIKE' => "%" . $filter . "%"
                 ));		
-        	/** 
-		if($product_id!=null)
-		 {
-		$product=$this->Product->findById($product_id);
-		    //$product=$this->Product->find("first",array("conditions"=>array("Product.id"=>$product_id)));
-		return json_encode($product['Product']);
-			
-			 }
-		**/	
+        	 		
 		
 		if ($page != null) {
         //echo "pageis--link".$page;
