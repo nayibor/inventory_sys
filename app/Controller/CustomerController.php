@@ -174,6 +174,24 @@ class CustomerController extends AppController {
         }
     }
 
+
+	//this is used for bringing down the list of categories for use by backbone
+    public function cat_list_back(){
+	
+		$this->autoLayout = false;
+		$conditions_array = array(
+            'Category.inst_id' => $this->Session->read('inst_id'),
+            'Category.site_id' => $this->Session->read('site_id'));
+		
+		$category=$this->Category->find('all',array('recursive'=>-1,'conditions'=>$conditions_array,'fields'=>array('id','long_name')));
+		$cat_list_ret=array();
+		foreach($category as $val){
+		$cat_list[] = $val['Category'];	
+		}
+		echo json_encode(array("cat_list"=>$cat_list));
+		exit();
+		}
+
     //this is for  viewing the categories list
     public function cat_list($paginate_link = null) {
 

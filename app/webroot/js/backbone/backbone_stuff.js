@@ -12,14 +12,53 @@ var backbone_stuff={
 	 list_url:$("#product_list_back").val(),
 	 archive_status:$("#search_prod").val(),
 	 search_value:$("#search_prod").val(),
+	 prod_diag:$("#product-diag"),
 	//this is the initialization for the backbone object
 	 init:function(){
 	
 	 _this=this;
+	 _this.configure_prod_diag();
 	 _this.backbone_product_mod_init();
 	
 	 }, 
+	 default_ajax:{wait:true,
+	 beforeSend(){
+     settings.disable_okbutt_mgdialg() ;
+     settings.show_message("Retrieving Details..."); 
+	 },
+     error:function(collection,response,options){
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Error<br>"+"Please Try Again");	
+	 },
+     success:function(collections,response,options){
+		  settings.close_message_diag();
+          settings.enable_okbutt_mgdialg();
+		}
+		},
 	 
+	 
+	configure_prod_diag:function(){
+		
+		var diag = $(_this.prod_diag);
+        diag.dialog({
+			 autoOpen: false,
+              title:"Add/Edit Product",
+              width: 500,
+              height: 300,
+              closeOnEscape: false,
+			modal: true,
+			 buttons: {
+                    "Cancel": function() {
+                        $( this ).dialog( "close" );
+
+                    },
+                    "Save": function() {
+						
+                    }
+               
+                }});
+        diag.dialog('close');
+	 },	
 			
 	 backbone_product_mod_init:function(){
 		
@@ -44,6 +83,15 @@ var backbone_stuff={
      }
      });
 	   
+	//for setting up the categories model which will be used  to load up category information which can be used 
+   // for setting up a edit/empty model for stuff to be done 
+	 var CatModel = Backbone.Model.extend({
+	  defaults:{ 
+	    id:null,	
+	    long_name:null
+		}	
+		});
+	 
 	
 	 //for basic collection extends  object with meta facilities
 	 var MetaCollection = Backbone.Collection.extend({
@@ -60,7 +108,21 @@ var backbone_stuff={
 	 });
 	   	
 	   	
-	 //for collection object	
+	  //for categories collection object
+	 var CatCollection = MetaCollection.extend({
+	  url:$("#product_cat").val(),
+     model: CatModel,
+     initialize: function() {
+		 
+	 },
+      parse: function(data) {
+	 this.meta('pagination',(data.pagination) ? data.pagination : {});
+    
+     return data.cat_list;
+     }	 });
+	  
+	   	
+	 //for collection object for product	
 	 var ProductsCollection = MetaCollection.extend({
      url: _this_back.list_url,
      model: ProductModel,
@@ -74,6 +136,26 @@ var backbone_stuff={
      }
 	 });		
 	
+	
+	 //view for product_add item
+	
+	 var ProductView= Backbone.View.extend({
+	  tagname:'div',
+	 id:'product_div',
+	 model:ProductModel,
+	 template: _.template($('#product_tmpl').html()),
+	 
+	 render:function(){	 
+	 var pass_data={
+	 product:this.model.toJSON(),
+	 cat_data:catData.toJSON()
+	 };
+	 	 
+     var html = this.template(pass_data);
+     this.$el.html(html);
+     return this;
+	 }	 
+	 });
 	
 	//view for pagination item
     
@@ -194,7 +276,7 @@ var backbone_stuff={
      },
     
      events: {
-     'click #add_prod'   : 'onCreate',
+     'click #add_prod'   : 'onCreateDiag',
      'click .tran_type'  : 'setupTransaction',
      'keyup #search_prod': 'searchKey',
      'click #search_butt': 'otherSearch',
@@ -252,41 +334,48 @@ var backbone_stuff={
 		
      },
     
-    onCreate: function() {
-		
-    var $name = "product_name";
-    var $user_id = 1;
-
-    if ($name.val()) {
-      this.collection.create({
-      product_name: $name,
-      user_id: $user_id
-    });
-
-    $name.val('');
-    $job.val('');
-    }
-	}
-	});
+    
+     //supposed to load a new cateogry object and then use it as 
+    //input for creating the add/edit product template
+    onCreateDiag: function(event) {
+	event.preventDefault();
 	
-	//for creating instance of collection object and view object
-   // use reset instead of fetch for bootstraping
-	 var product_list = new ProductsCollection;
-	 var productView = new ProductListView({collection: product_list});
-	 product_list.fetch({wait:true,
+    var $product = $('#product-diag').empty();	
+	catData.fetch(
+	{wait:true,
 	 beforeSend(){
      settings.disable_okbutt_mgdialg() ;
      settings.show_message("Retrieving Details..."); 
 	 },
-     error:function(collection,response,options){
+     error:function(model,response,options){
 	 settings.enable_okbutt_mgdialg();
 	 settings.show_message("Error<br>"+"Please Try Again");	
 	 },
-     success:function(collections,response,options){
+     success:function(model,response,options){
+		  console.log("length--"+catData.length);
 		  settings.close_message_diag();
           settings.enable_okbutt_mgdialg();
-		}
-		});
+          var product = new ProductView({model:new ProductModel()});
+          $product.append(product.render().$el);
+          $(backbone_stuff.prod_diag).dialog('open');
+          
+	}
+	}
+	);
+   
+	}
+	});
+	
+	
+	
+	
+	//for creating instance of collection object and view object
+   // use reset instead of fetch for bootstraping
+   // cat data is also created but not instantiated
+	 var catData=new CatCollection();
+	 var product_list = new ProductsCollection();
+	 var productView = new ProductListView({collection: product_list});
+	 product_list.fetch(backbone_stuff.default_ajax);
 	 //product_list.reset(<%= @product_list.to_json %>);
 
 

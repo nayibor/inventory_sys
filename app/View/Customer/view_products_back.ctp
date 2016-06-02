@@ -16,6 +16,7 @@
 <?php     
        echo $this->element('backbone_temp/product_list_template');
 	   echo $this->element('backbone_temp/paginate_template');
+	   echo $this->element('backbone_temp/product_template');
 
 ?>
 
@@ -98,15 +99,9 @@
 </table>
 <div id="page_outer_div">
 </div>
+<div name="product-diag" id="product-diag" title="Message">
+</div>    
 
-    <div name="dialog-message" id="dialog-message" title="Message">
-        <p class="messsage">
-        </p>
-    </div>
-    <div name="dialog-confirm" id="dialog-confirm" title="Confirmation">
-        <p class="messsage">
-        </p>
-    </div>
     <input type="hidden" name="product_list_url" id="product_list_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'product_list')); ?>" />
     <input type="hidden" name="product_add_url" id="product_add_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'add_product')); ?>" />
     <input type="hidden" name="product_del_url" id="product_del_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'del_product')); ?>" />
@@ -116,6 +111,7 @@
     <input type="hidden" name="product_archive_url" id="product_archive_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'archive_product')); ?>" />
     <input type="hidden" name="transaction_print_list_url" id="transaction_print_list_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'get_print_info_list')); ?>" />
     <input type="hidden" name="product_list_back" id="product_list_back" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'products')); ?>" />
+    <input type="hidden" name="product_cat" id="product_cat" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'cat_list_back')); ?>" />
 
 </div>
 

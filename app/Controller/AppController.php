@@ -72,6 +72,7 @@ class AppController extends Controller {
                 && $this->action != 'landing_page'
                 && $this->action != 'get_print_info_list'
                 && $this->action != 'products'
+                && $this->action !=  'cat_list_back'
                 && !$this->RequestHandler->isAjax()) {
 
 ///this is fore redirectiong to login page if user isnt logged in 
