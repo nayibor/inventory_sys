@@ -36,8 +36,14 @@ var backbone_stuff={
 		}
 		},
 	 
+	 //callback will have to be created which will be used for setting up the cancel and save functionality 
+	 dialog_save_action:function(){
+		
+		 
+		},
 	 
-	configure_prod_diag:function(){
+	 configure_prod_diag:function(){
+		 _this=this ;
 		
 		var diag = $(_this.prod_diag);
         diag.dialog({
@@ -53,11 +59,14 @@ var backbone_stuff={
 
                     },
                     "Save": function() {
-						
+	    			
+	    		backbone_stuff.dialog_save_action();	
+	    				
                     }
                
                 }});
         diag.dialog('close');
+                
 	 },	
 			
 	 backbone_product_mod_init:function(){
@@ -79,7 +88,13 @@ var backbone_stuff={
 	 defaults: {
      id:null,
 	 product_name: null,
-	 user_id:null
+	 user_id:null,
+	 cost_price:null,
+	 selling_price:null,
+	 min_stock_notif:null,
+	 max_stock_notif:null,
+	 stock_available:0,
+	 archive_status:0
      }
      });
 	   
@@ -138,13 +153,23 @@ var backbone_stuff={
 	
 	
 	 //view for product_add item
+	//accepts a product model as an input model
 	
 	 var ProductView= Backbone.View.extend({
-	  tagname:'div',
+	 tagname:'div',
 	 id:'product_div',
 	 model:ProductModel,
 	 template: _.template($('#product_tmpl').html()),
 	 
+	 initialize:function(){
+	 _this_prod_view=this;
+	 backbone_stuff.dialog_save_action=function(){
+	_this_prod_view.SaveProduct();
+	 }; 
+	 },
+	 events: {
+
+	 },
 	 render:function(){	 
 	 var pass_data={
 	 product:this.model.toJSON(),
@@ -154,7 +179,47 @@ var backbone_stuff={
      var html = this.template(pass_data);
      this.$el.html(html);
      return this;
-	 }	 
+	 },
+	 
+	 //this is used for performing validation before the model is saved
+	 //this is for saving a product and adding it to the collection object
+     SaveProduct:function(event){
+	 _this_prod_view=this;
+	  counter=0;	 
+	  $(".check").each(function(){
+      
+            if(!(document.getElementById($(this).attr("id")).checkValidity()) ){
+            $(this).css("border","solid #F44 2px"); 
+            _this_prod_view.model.set($(this).attr("name"),'');
+            counter++;
+            }else
+            {
+            $(this).css("border","solid grey 1px");  
+            _this_prod_view.model.set($(this).attr("name"),$(this).val());    
+                     
+			}
+      })	;
+      
+      if(counter==0)
+      {
+	 product_list.create(_this_prod_view.model.toJSON(),
+		{wait:true,
+	 beforeSend(){
+     settings.disable_okbutt_mgdialg() ;
+     settings.show_message("Saving Data..."); 
+	 },
+     error:function(collection,response,options){
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Error<br>"+"Please Try Again");	
+	 },
+     success:function(collections,response,options){
+		  settings.close_message_diag();
+          settings.enable_okbutt_mgdialg();
+          $(backbone_stuff.prod_diag).dialog('close');
+          product_list.fetch();        
+	 }});  		  
+	 }  
+	 } 
 	 });
 	
 	//view for pagination item
@@ -205,17 +270,26 @@ var backbone_stuff={
      return this;
 	 },
 	 
-	 onEdit:   function(evt){
+	 onEdit:   function(event){
+	 event.preventDefault();
+	 var $product_data = $('#product-diag').empty();
 	 this.model.fetch({wait:true,
-     error:function(model,response,options){
-		 console.log("error");
-		 },
-     success:function(model,response,options){
-     
-     console.log(response);
-      console.log(model.get('product_name'));
-	
-     	}
+	 beforeSend(){
+     settings.disable_okbutt_mgdialg() ;
+     settings.show_message("Retrieving Details..."); 
+	 },
+     error:function(model_data,response,options){
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Error<br>"+"Please Try Again");	
+	 },
+     success:function(model_data,response,options){
+		  settings.close_message_diag();
+          settings.enable_okbutt_mgdialg();
+          var product_edit = new ProductView({model:model_data});
+          $product_data.append(product_edit.render().$el);
+          $(backbone_stuff.prod_diag).dialog('open');
+          
+		}
 		}); 
 	 },
 	 
@@ -245,14 +319,39 @@ var backbone_stuff={
      var ProductListView = Backbone.View.extend({
 	 el: '.tableWrapper',
 
+
+	 list_view_table:$('#table_info_tbody'),
+	 list_paginate_view:$('#page_outer_div'),
+	 
+
      initialize: function() {
+	 _this_list=this;
      
      this.listenTo(this.collection, 'sync', this.render);
+     //this.listenTo(this.collection, 'add', this.addOne);
+     this.listenTo(this.collection, 'request', this.request_event);
+     this.listenTo(this.collection, 'error', this.error_event);
+     
+     //this.listenTo(this.collection, 'add', this.addOne);
+    
      
 	 },
-
-     render: function() {
-	 console.log("rendering");
+	 
+	 request_event:function(){
+	 
+	 console.log("request_event fired");	 
+     },
+     
+     error_event:function(){
+	 
+	 console.log("error event fired");	 
+     },
+	 
+	 render: function(event) {
+	 
+	 console.log("sync event fired");
+	 
+	 
 	 _this_list=this;	
      var $list = this.$('#table_info_tbody').empty();
      var $page = this.$('#page_outer_div').empty();
@@ -280,9 +379,18 @@ var backbone_stuff={
      'click .tran_type'  : 'setupTransaction',
      'keyup #search_prod': 'searchKey',
      'click #search_butt': 'otherSearch',
-     'click span.pglink a' : 'onPage'	 
+     'click span.pglink a' : 'onPage'
 
      },
+     
+     addOne:function(model_data){
+	 
+	 console.log("add event fired");
+	 model_data.set('class_name',"odd");
+     var item = new ProductsItemView({model: model_data});
+     this.list_view_table.append(item.render().$el);
+	 return true ; 
+	 },
      
      searchPage:function(url){
 		  
@@ -338,12 +446,12 @@ var backbone_stuff={
      //supposed to load a new cateogry object and then use it as 
     //input for creating the add/edit product template
     onCreateDiag: function(event) {
+		
 	event.preventDefault();
-	
-    var $product = $('#product-diag').empty();	
+    var $product = $('#product-diag').empty();
 	catData.fetch(
 	{wait:true,
-	 beforeSend(){
+	 beforeSend:function(){
      settings.disable_okbutt_mgdialg() ;
      settings.show_message("Retrieving Details..."); 
 	 },
@@ -352,7 +460,6 @@ var backbone_stuff={
 	 settings.show_message("Error<br>"+"Please Try Again");	
 	 },
      success:function(model,response,options){
-		  console.log("length--"+catData.length);
 		  settings.close_message_diag();
           settings.enable_okbutt_mgdialg();
           var product = new ProductView({model:new ProductModel()});
@@ -365,9 +472,6 @@ var backbone_stuff={
    
 	}
 	});
-	
-	
-	
 	
 	//for creating instance of collection object and view object
    // use reset instead of fetch for bootstraping

@@ -7,7 +7,7 @@
 <td>0</td>
 <td><%= min_stock_notif %></td>
 <td><%= max_stock_notif %></td>
-<td><%= category_product %></td>
+<td><%= category %></td>
 <td><%= cost_price  %></td>
 <td><%= selling_price  %></td>
 <td>

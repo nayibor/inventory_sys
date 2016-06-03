@@ -15,7 +15,7 @@ this template is a template for a product
                 <li>
                    
                    <input type="text" class="check" required name="product_name" id="product_name"  value="<%= (product.product_name!=null) ? product.product_name : "" %>" />      
-                   <input type="hidden" required name="id" id="id"  value="<%= (product.id!=null) ? product.id : "" %>" />      
+                   <input type="hidden" class ="check"  name="id" id="id"  value="<%= (product.id!=null) ? product.id : "" %>" />      
 
                 </li>
             </ul>  
@@ -34,7 +34,7 @@ this template is a template for a product
                     <label> Quantity/Batch </label> 
                 </li>
                 <li>
-                    <input type='number' min="1" step="1" max="10000000" class="quantity_crate check" required name=quantity_crate" id="quantity_crate"  data-orig="1" value="<%= (product.quantity_crate!=null) ? product.quantity_crate : 1 %>" />      
+                    <input type='number' min="1" step="1" max="10000000" class="quantity_crate check" required name="quantity_crate" id="quantity_crate"  data-orig="1" value="<%= (product.quantity_crate!=null) ? product.quantity_crate : 1 %>" />      
                 </li>
             </ul>
             <ul class='tableActions'>
@@ -42,9 +42,14 @@ this template is a template for a product
                     <label> Category </label> 
                 </li>
                 <li>
-                                    <select name="category_product" id="category_product">
-                <%     for (var i=0;i < cat_data.length;i++){               %>
-                            <option value="<%= cat_data[i].id %>"><%= cat_data[i].long_name  %></option>   
+                                    <select name="category_product" id="category_product" class="check">
+                <% for (var i=0;i < cat_data.length;i++){ %>
+                            <option 
+                        <% if(cat_data[i].id==product.category_product) { %>
+                        selected="selected"
+                        <% } %>   
+                        value="<%= cat_data[i].id %>"><%= cat_data[i].long_name  %>
+                          </option>   
 				<% } %>	
 									</select>
                 </li>
@@ -64,7 +69,7 @@ this template is a template for a product
                     <label> Selling Price </label> 
                 </li>
                 <li>
-                    <input  type='number' min="0" step="0.00001" max="10000000" class='selling_price check'  required name="" id="selling_price" data-orig="0.00" value="<%= (product.selling_price!=null) ? product.selling_price : "0.00" %>" />      
+                    <input  type='number' min="0" step="0.00001" max="10000000" class='selling_price check'  required name="selling_price" id="selling_price" data-orig="0.00" value="<%= (product.selling_price!=null) ? product.selling_price : "0.00" %>" />      
                 </li>
             </ul>
 
@@ -74,7 +79,7 @@ this template is a template for a product
                     <label> Minimum Stock  </label> 
                 </li>
                 <li>
-                    <input  type='number' min="1" step="1" max="10000000" class='min_stock_notif check'  required name="min_stock_notif" id="min_stock_notif" data-orig="0.00" value="<%= (product.min_stock_notif!=null) ? product.min_stock_notif : "0.00" %>" />      
+                    <input  type='number' min="1" step="1" max="10000000" class='min_stock_notif check'  required name="min_stock_notif" id="min_stock_notif" data-orig="0.00" value="<%= (product.min_stock_notif!=null) ? product.min_stock_notif : "0" %>" />      
                 </li>
             </ul>
 
@@ -83,7 +88,7 @@ this template is a template for a product
                     <label> Maximum Stock  </label> 
                 </li>
                 <li>
-                    <input  type='number' min="1" step="1" max="10000000" class='max_stock_notif check'  required name="max_stock_notif" id="max_stock_notif" data-orig="0.00" value="<%= (product.max_stock_notif!=null) ? product.max_stock_notif : "0.00" %>" />      
+                    <input  type='number' min="1" step="1" max="10000000" class='max_stock_notif check'  required name="max_stock_notif" id="max_stock_notif" data-orig="0.00" value="<%= (product.max_stock_notif!=null) ? product.max_stock_notif : "0" %>" />      
                 </li>
             </ul>
             <ul class='tableActions'>

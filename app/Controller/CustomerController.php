@@ -296,9 +296,9 @@ class CustomerController extends AppController {
 		exit();
 		break;
 		 
-	    case "PUT":
-	    
-	    $resp=$this->create_product_back($product_id);
+	    case "PUT":	    
+	    $data=$this->request->data;
+		$resp=$this->create_product_back($data);
 		echo $resp;
 		exit();
 		break;
@@ -352,8 +352,10 @@ class CustomerController extends AppController {
 			$prod_data['date_created'] = date('Y-m-d H:i:s');
 				}
             $prod_data['inst_id'] = $this->Session->read('inst_id');
+            $prod_data['stock_available'] = 0;
+            $prod_data['archive_status'] = '0';
             $prod_data['site_id'] = $this->Session->read('site_id');
-            $prod_data['user_id'] = $memberdata['User']['id'];
+            $prod_data['user_id'] = $memberdata['User']['id'];          
             $prod_save=$this->Product->save($prod_data);
             return json_encode($prod_save);
 	   
