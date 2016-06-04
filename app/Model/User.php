@@ -98,7 +98,7 @@ class User extends AppModel {
     function addUser($data) {
         $this->set($data);         
         if($this->save()){
-        $data_return = array('name' => $data['fname'] . " " . $data['lname'], 'id' => $this->id, 'pass' => $pass, 'user_email' => $data['user_email']);
+        $data_return = array('name' => $data['fname'] . " " . $data['lname']);
         return $data_return;
 	}else{
 		return false;

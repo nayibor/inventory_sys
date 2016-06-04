@@ -100,7 +100,7 @@ class UserController extends AppController {
                     $add_user_data = $this->User->addUser($data);
                     
                   if($add_user_data!=false){     
-                    $data = array('id' => $add_user_data['id'], 'pass' => $add_user_data['pass']);
+                    //$data = array('id' => $add_user_data['id'], 'pass' => $add_user_data['pass']);
                     // $this->email_user_pass('new', $data);
                     echo json_encode(array("new_pass" => $pass, "status" => "true", "name" => $add_user_data['name']));
                }

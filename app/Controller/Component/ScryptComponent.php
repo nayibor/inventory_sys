@@ -27,7 +27,7 @@ class ScryptComponent extends Component {
      * values below will have to be put into the system as constants and 
      * also removed from the final password
      * @param string $password
-     * @param string $hash     to be used to compare
+     * @param string $salt     to be used to compare
      * @param int    $N        The CPU difficultly (must be a power of 2, > 1) --General work factor, iteration count.
      * @param int    $r        The memory difficultly --relative memory cost   --blocksize in use for underlying hash; fine-tunes the relative memory-cost.
      * @param int    $p        The parallel difficultly --parallelization cost --parallelization factor; fine-tunes the relative cpu-cost.
