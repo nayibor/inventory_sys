@@ -364,7 +364,14 @@ class CustomerController extends AppController {
 //this is used for getting a single product info 
   function get_product_single_info($product_id){
 		
-			$product=$this->Product->findById($product_id);
+		$product=$this->Product->findById($product_id);
+	    $conditions_array = array('Category.inst_id' => $this->Session->read('inst_id'),'Category.site_id' => $this->Session->read('site_id'));
+
+		$category=$this->Category->find('all',array('recursive'=>-1,'conditions'=>$conditions_array,'fields'=>array('id','long_name')));
+		foreach($category as $val){
+		$cat_list[] = $val['Category'];	
+		}
+		$product['Product']['cat_list']=$cat_list;
 		    //$product=$this->Product->find("first",array("conditions"=>array("Product.id"=>$product_id)));
 		    return json_encode($product['Product']);
 	  

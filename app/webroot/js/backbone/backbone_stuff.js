@@ -95,7 +95,8 @@ var backbone_stuff={
 	 max_stock_notif:null,
 	 stock_available:0,
 	 archive_status:0
-     }
+     },
+     categories:[]
      });
 	   
 	//for setting up the categories model which will be used  to load up category information which can be used 
@@ -110,7 +111,6 @@ var backbone_stuff={
 	
 	 //for basic collection extends  object with meta facilities
 	 var MetaCollection = Backbone.Collection.extend({
-     _meta:[],
      parse: function(data) {
 	 },
      meta: function(prop, value) {
@@ -124,14 +124,14 @@ var backbone_stuff={
 	   	
 	   	
 	  //for categories collection object
-	 var CatCollection = MetaCollection.extend({
+	 var CatCollection = Backbone.Collection.extend({
 	  url:$("#product_cat").val(),
      model: CatModel,
      initialize: function() {
 		 
 	 },
       parse: function(data) {
-	 this.meta('pagination',(data.pagination) ? data.pagination : {});
+	 //this.meta('pagination',(data.pagination) ? data.pagination : {});
     
      return data.cat_list;
      }	 });
@@ -139,14 +139,19 @@ var backbone_stuff={
 	   	
 	 //for collection object for product	
 	 var ProductsCollection = MetaCollection.extend({
+	 _meta:[],
      url: _this_back.list_url,
      model: ProductModel,
      initialize: function() {
 		 
 	 },
      parse: function(data) {
+	 var val = $("#search_prod").val();
+     var archive_status=$("#enable_archive_status").val();
+     var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;		 
 	 this.meta('pagination',(data.pagination) ? data.pagination : {});
-    
+	 this.meta('cpage',this.url+"?page="+data.pagination.page+"&"+query_string); 
+	 console.log(this.meta('cpage'));
      return data.products;
      }
 	 });		
@@ -159,6 +164,7 @@ var backbone_stuff={
 	 tagname:'div',
 	 id:'product_div',
 	 model:ProductModel,
+	 cat_list:[],
 	 template: _.template($('#product_tmpl').html()),
 	 
 	 initialize:function(){
@@ -173,7 +179,7 @@ var backbone_stuff={
 	 render:function(){	 
 	 var pass_data={
 	 product:this.model.toJSON(),
-	 cat_data:catData.toJSON()
+	 cat_data:this.model.get('cat_list')
 	 };
 	 	 
      var html = this.template(pass_data);
@@ -213,10 +219,28 @@ var backbone_stuff={
 	 settings.show_message("Error<br>"+"Please Try Again");	
 	 },
      success:function(collections,response,options){
+	 settings.close_message_diag();
+     settings.enable_okbutt_mgdialg();
+     $(backbone_stuff.prod_diag).dialog('close'); 
+     product_list.fetch({wait:true,
+	 url:product_list.meta('cpage'),
+	 beforeSend(){
+     settings.disable_okbutt_mgdialg() ;
+     settings.show_message("Retrieving Details..."); 
+	 },
+     error:function(collection,response,options){
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Error<br>"+"Please Try Again");	
+	 
+	 },
+     success:function(collections,response,options){
 		  settings.close_message_diag();
           settings.enable_okbutt_mgdialg();
-          $(backbone_stuff.prod_diag).dialog('close');
-          product_list.fetch();        
+		}
+		});	 
+     
+     
+          //this.meta('cpage');       
 	 }});  		  
 	 }  
 	 } 
@@ -271,9 +295,12 @@ var backbone_stuff={
 	 },
 	 
 	 onEdit:   function(event){
+	 _this=this;
 	 event.preventDefault();
-	 var $product_data = $('#product-diag').empty();
-	 this.model.fetch({wait:true,
+	 console.log(_this.model.toJSON());
+	 var $product = $('#product-diag').empty();
+	 
+	 _this.model.fetch({wait:true,
 	 beforeSend(){
      settings.disable_okbutt_mgdialg() ;
      settings.show_message("Retrieving Details..."); 
@@ -283,14 +310,16 @@ var backbone_stuff={
 	 settings.show_message("Error<br>"+"Please Try Again");	
 	 },
      success:function(model_data,response,options){
+		 console.log(response);
 		  settings.close_message_diag();
           settings.enable_okbutt_mgdialg();
-          var product_edit = new ProductView({model:model_data});
-          $product_data.append(product_edit.render().$el);
+          var product = new ProductView({model:model_data});
+          $product.append(product.render().$el);
           $(backbone_stuff.prod_diag).dialog('open');
-          
+                   
 		}
 		}); 
+		
 	 },
 	 
 	 onArch:function(event){
@@ -350,7 +379,8 @@ var backbone_stuff={
 	 render: function(event) {
 	 
 	 console.log("sync event fired");
-	 
+	  console.log("meta--data--");
+	 console.log(_this_list.collection.meta('pagination'));
 	 
 	 _this_list=this;	
      var $list = this.$('#table_info_tbody').empty();
@@ -446,7 +476,7 @@ var backbone_stuff={
      //supposed to load a new cateogry object and then use it as 
     //input for creating the add/edit product template
     onCreateDiag: function(event) {
-		
+		_this=this;
 	event.preventDefault();
     var $product = $('#product-diag').empty();
 	catData.fetch(
@@ -455,14 +485,14 @@ var backbone_stuff={
      settings.disable_okbutt_mgdialg() ;
      settings.show_message("Retrieving Details..."); 
 	 },
-     error:function(model,response,options){
+     error:function(collection,response,options){
 	 settings.enable_okbutt_mgdialg();
 	 settings.show_message("Error<br>"+"Please Try Again");	
 	 },
-     success:function(model,response,options){
+     success:function(collection,response,options){
 		  settings.close_message_diag();
           settings.enable_okbutt_mgdialg();
-          var product = new ProductView({model:new ProductModel()});
+          var product = new ProductView({model:new ProductModel({cat_list:response.cat_list})});
           $product.append(product.render().$el);
           $(backbone_stuff.prod_diag).dialog('open');
           
