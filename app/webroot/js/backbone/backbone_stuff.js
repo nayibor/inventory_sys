@@ -222,7 +222,8 @@ var backbone_stuff={
 	 settings.close_message_diag();
      settings.enable_okbutt_mgdialg();
      $(backbone_stuff.prod_diag).dialog('close'); 
-     product_list.fetch({wait:true,
+     product_list.fetch(
+     /**{wait:true,
 	 url:product_list.meta('cpage'),
 	 beforeSend(){
      settings.disable_okbutt_mgdialg() ;
@@ -236,8 +237,8 @@ var backbone_stuff={
      success:function(collections,response,options){
 		  settings.close_message_diag();
           settings.enable_okbutt_mgdialg();
-		}
-		});	 
+	 }
+	 }**/);	 
      
      
           //this.meta('cpage');       
@@ -278,45 +279,43 @@ var backbone_stuff={
      
      initialize: function() {
 	 
-	 this.listenTo(this.model, 'destroy', this.remove);
+	 this.listenTo(this.model, 'sync', this.render);
+
 	 },
 	 events: {
-     'click .iconlock': 'onArch',
-     'click .iconopen': 'onArch',
+     'click .iconlock':  'onArch',
+     'click .iconopen':  'onArch',
      'click .edit_prod': 'onEdit'
 
 	 },
 	 
-	  onArch:function(event){
-	 
+	 onArch:function(event){
+	 _this_addprod=this;
 	 event.preventDefault();	 
-	 console.log(this.model.toJSON());
-	 
-	/** settings.confirmation_action=function(){
-	 this.model.set('archive_status',(this.model.get("archive_status")=="1" ? "0" : "1"));
-	 console.log(this.model.toJSON());
-	 return;
-	 this.model.save({wait:true,
+	 console.log(_this_addprod.model.toJSON());
+	 console.log("arch_stat--"+_this_addprod.model.get("archive_status"));
+	  
+	 settings.confirmation_action=function(){
+	 _this_addprod.model.destroy({wait:true,
 	 beforeSend(){
      settings.disable_okbutt_mgdialg() ;
-     settings.show_message("Retrieving Details..."); 
+     settings.show_message("Saving Data..."); 
 	 },
-     error:function(collection,response,options){
+     error:function(model,response,options){
 	 settings.enable_okbutt_mgdialg();
 	 settings.show_message("Error<br>"+"Please Try Again");	
+	  settings.confirmation_action=function(){};
 	 },
-     success:function(collections,response,options){
-		  settings.close_message_diag();
-          settings.enable_okbutt_mgdialg();
+     success:function(model,response,options){
+	 settings.close_message_diag();
+     settings.enable_okbutt_mgdialg();
+     settings.confirmation_action=function(){};
+     product_list.fetch();  
 		}
-		})
-	 };*/
-	 settings.enable_okbutt_mgdialg();
-	 settings.show_message("Error<br>"+"Please Try Again");	
-	 
-	 settings.show_confirmation("Do You Want To Archive/Unarchive Item.<br>"); 
-	 console.log("action not showed"); 
-	 
+		});
+	 };
+	 settings.show_confirmation("Do You Want to Archive/Unarchive ");
+	
 	 },
 
 	 render: function() {

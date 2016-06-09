@@ -201,7 +201,7 @@ $categories = array_keys($links_array);
             <p class="messsage">
             </p>
         </div>
-        <div name="setting_dialog-confirm" id="setting_dialog-confirm  title="Confirmation">
+        <div name="setting_dialog-confirm" id="setting_dialog-confirm"  title="Confirmation">
              <p class="messsage">
             </p>
         </div>

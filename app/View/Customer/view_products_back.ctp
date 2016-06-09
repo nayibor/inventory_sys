@@ -104,7 +104,7 @@
 
     <input type="hidden" name="product_list_url" id="product_list_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'product_list')); ?>" />
     <input type="hidden" name="product_add_url" id="product_add_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'add_product')); ?>" />
-    <input type="hidden" name="product_del_url" id="product_del_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'del_product')); ?>" />
+    <input type="hidden" name="product_del_url" id="product_del_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'delete_product_back')); ?>" />
     <input type="hidden" name="stock_edit_url" id="stock_edit_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'edit_stock')); ?>" />
     <input type="hidden" name="stock_edit_url" id="stock_edit_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'edit_stock')); ?>" />
     <input type="hidden" name="product_batch_add_url" id="product_batch_add_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'batch_transaction')); ?>" />

@@ -36,8 +36,6 @@ var settings={
             buttons: {
                 "Cancel":function(){
                     $( this ).dialog( "close" ); 
-               // _this.confirmation_action=function(){} ;
-
                 },
                 "Ok": function() {
                     _this.confirmation_action() ;

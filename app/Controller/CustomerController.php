@@ -295,7 +295,7 @@ class CustomerController extends AppController {
 		echo $resp;
 		exit();
 		break;
-		 
+	 
 	    case "PUT":	    
 	    $data=$this->request->data;
 		$resp=$this->create_product_back($data);
@@ -303,7 +303,7 @@ class CustomerController extends AppController {
 		exit();
 		break;
 		 
-		case "DEL":
+		case "DELETE":
 		
 		$resp=$this->delete_product_back($product_id);
 		echo $resp;
@@ -315,15 +315,15 @@ class CustomerController extends AppController {
 		
 		}
 
-//this will be used for archiving products
+//this will be used for only archiving products
+//this  is supposed to be used for  deleting but will be used for something else for now due to testing of libarary
   function delete_product_back($product_id){
 	  
-	  
+	
 	    $product=$this->Product->findById($product_id);
-	    $archive_status=$product['Product']['archive_status'];
-	    if($archive_status=="1")
+	    if($product['Product']['archive_status']=="1")
 	    {  $new_archive_status="0";}
-	    else
+	    if($product['Product']['archive_status']=="0")
 	    {$new_archive_status="1";}
 	 
                 $this->Product->set(array(
