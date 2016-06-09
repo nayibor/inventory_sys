@@ -287,6 +287,38 @@ var backbone_stuff={
 
 	 },
 	 
+	  onArch:function(event){
+	 
+	 event.preventDefault();	 
+	 console.log(this.model.toJSON());
+	 
+	/** settings.confirmation_action=function(){
+	 this.model.set('archive_status',(this.model.get("archive_status")=="1" ? "0" : "1"));
+	 console.log(this.model.toJSON());
+	 return;
+	 this.model.save({wait:true,
+	 beforeSend(){
+     settings.disable_okbutt_mgdialg() ;
+     settings.show_message("Retrieving Details..."); 
+	 },
+     error:function(collection,response,options){
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Error<br>"+"Please Try Again");	
+	 },
+     success:function(collections,response,options){
+		  settings.close_message_diag();
+          settings.enable_okbutt_mgdialg();
+		}
+		})
+	 };*/
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Error<br>"+"Please Try Again");	
+	 
+	 settings.show_confirmation("Do You Want To Archive/Unarchive Item.<br>"); 
+	 console.log("action not showed"); 
+	 
+	 },
+
 	 render: function() {
 		 
      var html = this.template(this.model.toJSON());
@@ -320,12 +352,6 @@ var backbone_stuff={
 		}
 		}); 
 		
-	 },
-	 
-	 onArch:function(event){
-		 
-     console.log(this.model.get('archive_status'));
-		 
 	 },
 	 
 	 onRemove: function(event) {
