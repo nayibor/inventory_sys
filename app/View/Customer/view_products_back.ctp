@@ -11,12 +11,23 @@
     .tableWrapper{
         width:100% !important;
     }
+    .ul_chz{
+        text-align:center;
+        margin-left: 120px !important;
+        margin-bottom: 5px !important ;
+    }
+    .chzn-container{
+        342px !important;
+    }
 </style>
 
 <?php     
        echo $this->element('backbone_temp/product_list_template');
 	   echo $this->element('backbone_temp/paginate_template');
 	   echo $this->element('backbone_temp/product_template');
+	   echo $this->element('backbone_temp/transaction_template');
+	   echo $this->element('backbone_temp/transaction_list_item');
+
 
 ?>
 
@@ -100,6 +111,8 @@
 <div id="page_outer_div">
 </div>
 <div name="product-diag" id="product-diag" title="Message">
+</div> 
+<div name="product_trans" id="product_trans" title="Message">
 </div>    
 
     <input type="hidden" name="product_list_url" id="product_list_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'product_list')); ?>" />
@@ -112,6 +125,7 @@
     <input type="hidden" name="transaction_print_list_url" id="transaction_print_list_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'get_print_info_list')); ?>" />
     <input type="hidden" name="product_list_back" id="product_list_back" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'products')); ?>" />
     <input type="hidden" name="product_cat" id="product_cat" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'cat_list_back')); ?>" />
+	<input type="hidden" name="product_transact_url" id="product_transact_url" value="<?php echo $this->Html->url(array('controller' => 'Customer', 'action' => 'add_sales_back')); ?>" />
 
 </div>
 

@@ -13,11 +13,13 @@ var backbone_stuff={
 	 archive_status:$("#search_prod").val(),
 	 search_value:$("#search_prod").val(),
 	 prod_diag:$("#product-diag"),
+	 trans_diag:$("#product_trans"),
 	//this is the initialization for the backbone object
 	 init:function(){
 	
 	 _this=this;
 	 _this.configure_prod_diag();
+	 _this.configure_tran_diag();
 	 _this.backbone_product_mod_init();
 	
 	 }, 
@@ -36,11 +38,54 @@ var backbone_stuff={
 		}
 		},
 	 
+	 //
+	 init_chosen:function(){
+			
+        
+        $("#search_item").chosen();
+        $("#reverse_reason").chosen();
+        $("#supplier").chosen();
+        $("#reverse_reason_chzn").hide();
+        $("#supplier_chzn").hide() ;  
+	 },
+	 
+	 
 	 //callback will have to be created which will be used for setting up the cancel and save functionality 
 	 dialog_save_action:function(){
 		
 		 
 		},
+		
+	dialog_tran_action:function(){
+		
+		},	
+	 
+	 configure_tran_diag : function(){
+		 _this=this ;
+		
+		var diag = $(_this.trans_diag);
+        diag.dialog({
+			 autoOpen: false,
+             title:"Perform Transaction",
+             width: 700,
+             height: 420,
+             closeOnEscape: false,
+			 modal: true,
+			 buttons: {
+                    "Cancel": function() {
+                        $( this ).dialog( "close" );
+
+                    },
+                    "Save": function() {
+	    			
+	    		backbone_stuff.dialog_tran_action();	
+	    				
+                    }
+               
+                }});
+        diag.dialog('close'); 
+		 
+	 },
 	 
 	 configure_prod_diag:function(){
 		 _this=this ;
@@ -150,8 +195,12 @@ var backbone_stuff={
      var archive_status=$("#enable_archive_status").val();
      var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;		 
 	 this.meta('pagination',(data.pagination) ? data.pagination : {});
-	 this.meta('cpage',this.url+"?page="+data.pagination.page+"&"+query_string); 
-	 console.log(this.meta('cpage'));
+	 this.meta('cpage',(data.pagination) ? this.url+"?page="+data.pagination.page+"&"+query_string : {});
+	 this.meta('suppliers',(data.suppliers) ? data.suppliers : {});
+	 this.meta('reverse',(data.reverse) ? data.reverse : {});
+	 this.meta('products',(data.products) ? data.products : {});
+	 this.meta('vat',(data.vat) ? data.vat : {});
+
      return data.products;
      }
 	 });		
@@ -270,6 +319,30 @@ var backbone_stuff={
 	 });
 	
 	
+	//view for  whole transaction list 
+	
+	 var TranListView = Backbone.View.extend({
+	 tagname:'div',
+	 collection:ProductsCollection,
+	 template:_.template($('#transaction_template').html()),
+	 render:function(){
+	 var pass_data = {
+		suppliers:this.collection.meta('suppliers'),
+		reverse:this.collection.meta('reverse'), 
+		products:this.collection.toJSON(),
+		vat:this.collection.meta('vat')
+		};
+	 console.log(pass_data);
+	 var html = this.template(pass_data);
+     this.$el.html(html);
+     return this; 	 
+	 }		
+	 });
+	
+	//view for a single product list item which can be added to transaction
+	
+	
+	
 	//view for a single product_list_item
 	 var ProductsItemView = Backbone.View.extend({
      tagName: 'tr',
@@ -367,8 +440,8 @@ var backbone_stuff={
 	 });
 	
 	
-	// View class for rendering the list of all products
-    ////this is for the whole collection of the productlist
+	 // View class for rendering the list of all products
+     ////this is for the whole collection of the productlist
 	
      var ProductListView = Backbone.View.extend({
 	 el: '.tableWrapper',
@@ -376,6 +449,7 @@ var backbone_stuff={
 
 	 list_view_table:$('#table_info_tbody'),
 	 list_paginate_view:$('#page_outer_div'),
+	 list_template_trans:$("#product_trans"),
 	 
 
      initialize: function() {
@@ -430,13 +504,101 @@ var backbone_stuff={
      },
     
      events: {
-     'click #add_prod'   : 'onCreateDiag',
-     'click .tran_type'  : 'setupTransaction',
-     'keyup #search_prod': 'searchKey',
-     'click #search_butt': 'otherSearch',
-     'click span.pglink a' : 'onPage'
+     'click #add_prod'     : 'onCreateDiag',
+     'click .tran_type'    :  'setupTransaction',
+     'keyup #search_prod'  : 'searchKey',
+     'click #search_butt'  : 'otherSearch',
+     'click span.pglink a' : 'onPage',
+     'click .tran_type'    : 'openTran'
 
      },
+     
+     
+     /*
+     * this is for the transaction object
+     **a flag is passed through which will be used for setting the kind of transaction it is
+     **this will influence the kind of info which will be shown in the tran page
+      tran_type,taxes,product,supplier,reverse reason
+     *tran_type/taxes will be a property of the collection/transaction object
+     * 
+     *product list will be passed into the transaction template and shown regardless of transaction type
+     *supplier list will be passed into the transaction template(may show depending on transaction)
+     *reverse reason list will be passed into the transaction template(may show depending on transaction)
+     
+     
+     *subtotal is a property of the collection/transaction object(view will be created and added on first adds)
+     *taxes/vat will be a property of the the collection/transaction object(view will be created and added on first adds)
+	 *total  will be a property of the the collection/transaction object(view will be created and added on first adds)
+	 *amount will be a property of the the collection/transaction object(view will be created and added on first adds)
+	 
+	 
+	 *product item will be passed into transaction template when item is selected (dynamicall added through created view) 
+		
+     * 
+     */
+     openTran:function(event){
+		 
+	 var tran_type_send=event.currentTarget.type;	 
+	 var title_diag = event.currentTarget.title;	
+	 event.preventDefault();	 
+	 transact_obj.fetch({wait:true,
+	 url:$("#product_transact_url").val(),
+	 beforeSend(){
+     settings.disable_okbutt_mgdialg() ;
+     settings.show_message("Retrieving Details..."); 
+	 },
+     error:function(collection,response,options){
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Error<br>"+"Please Try Again");	
+	 
+	 },
+	 //get response
+	//pass data into template and create transaction div
+   // dynamically add item objects to div
+     success:function(collection_data,response,options){
+		 
+		  collection_data.meta("tran_type_send",tran_type_send);
+		     if(collection_data.meta("tran_type_send")=="add_sales" || collection_data.meta("tran_type_send")=="add_inv"){
+               collection_data.meta("vat",collection_data.vat);
+            // alert(transaction.vat_transaction);
+          }
+            else{
+		  collection_data.meta("vat",0.00);
+          }
+         
+		  var $trans_list = this.$("#product_trans").empty();
+		  settings.close_message_diag();
+          settings.enable_okbutt_mgdialg();
+          var product = new TranListView({collection:collection_data});
+          $trans_list.append(product.render().$el);
+          $(backbone_stuff.trans_diag).dialog({ title:title_diag});
+          $(backbone_stuff.trans_diag).dialog('open');
+          backbone_stuff.init_chosen();
+          $(".ul_chz").css({"text-align":"center","margin-left":"120px !important","margin-bottom":"5px !important"});
+          $(".chzn-container").css({"width":"340px !important"});        
+                  
+           if(collection_data.meta("tran_type_send")=="add_revr")
+         {
+            $("ul.sp_ul").remove() ;
+            $("#reverse_reason_chzn").show() ;
+         }
+        else  if(collection_data.meta("tran_type_send")=="add_recv")
+         {
+            $("ul.rs_ul").remove() ;
+            $("#supplier_chzn").show();  
+         }
+        else
+         {
+            $("ul.sp_ul").remove() ;
+            $("ul.rs_ul").remove() ;
+         }
+          
+          
+          
+		 }
+		})
+	 
+	 },
      
      addOne:function(model_data){
 	 
@@ -447,12 +609,9 @@ var backbone_stuff={
 	 return true ; 
 	 },
      
-     searchPage:function(url){
+     searchPage:function(url_send){
 		  
-	 var val = $("#search_prod").val();
-     var archive_status=$("#enable_archive_status").val();
-     var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;	
-   	 url_send=url+"?"+query_string;
+	 
 	 console.log(url_send);
 	 //this.collection.url=url_send;
 	 this.collection.fetch({wait:true,
@@ -476,7 +635,12 @@ var backbone_stuff={
 	 searchKey:function(event){
 	 event.preventDefault();
             if(event.which==13){
-	 this.searchPage(this.collection.url);
+	 var val = $("#search_prod").val();
+     var archive_status=$("#enable_archive_status").val();
+     var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;	
+   	 url_send=this.collection.url+"?"+query_string;			
+				
+	 this.searchPage(url_send);
 	 }
 	 },
 	 
@@ -488,7 +652,12 @@ var backbone_stuff={
 	 
 	 otherSearch:function(event){
      event.preventDefault();
-	 this.searchPage(this.collection.url);
+     
+     var val = $("#search_prod").val();
+     var archive_status=$("#enable_archive_status").val();
+     var query_string=val!="" ? "filter="+val+"&arch_stat="+archive_status : "filter=null"+"&arch_stat="+archive_status;	
+   	 url_send=this.collection.url+"?"+query_string;			
+	 this.searchPage(url_send);
 	 },
 	 
      setupTransaction:function(evt){
@@ -533,7 +702,8 @@ var backbone_stuff={
    // cat data is also created but not instantiated
 	 var catData=new CatCollection();
 	 var product_list = new ProductsCollection();
-	 var productView = new ProductListView({collection: product_list});
+	 var transact_obj = new ProductsCollection();
+	 var productView  = new ProductListView({collection: product_list});
 	 product_list.fetch(backbone_stuff.default_ajax);
 	 //product_list.reset(<%= @product_list.to_json %>);
 

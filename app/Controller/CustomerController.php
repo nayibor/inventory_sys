@@ -105,6 +105,36 @@ class CustomerController extends AppController {
         }
     }
 
+
+  public function add_sales_back(){
+	  
+	    $this->autoLayout = false;
+        $inst_id = $this->Session->read('inst_id');
+        $site_id = $this->Session->read('site_id');
+	   
+	    $products = $this->Product->find('all', array('recursive' => '-1',
+            'conditions' => array('Product.archive_status' => '0','Product.inst_id'=>$inst_id,'Product.site_id'=>$site_id),
+            'fields' => array('selling_price', 'id', 'product_name', 'category_product', 'stock_available')));
+        $vat = $this->Taxe->find('first', array('recursive', 'conditions' => array('Taxe.inst_id'=>$inst_id,'Taxe.site_id'=>$site_id,'Taxe.vat_category' => 'sales')));
+        $reverse = $this->ReverseReason->find('all', array('recursive' => '-1','fields' => array('id', 'reason')));
+        $suppliers = $this->Supplier->find('all',array('recursive' => '-1','conditions' => array('Supplier.inst_id'=>$inst_id,'Supplier.site_id'=>$site_id)));
+        $response_array=array();
+        $reverse_stuff = array();
+        $supppliers_stuff = array();
+        foreach($products as $val){			
+		$response_array[]=$val['Product'];
+		};
+		foreach($suppliers as $val){
+		$supppliers_stuff[]=$val['Supplier'];
+		}
+		foreach ($reverse as $val){
+		$reverse_stuff[]=$val['ReverseReason'];
+		}
+		
+        echo json_encode(array("suppliers"=>$supppliers_stuff,"reverse"=>$reverse_stuff,"products"=>$response_array,"vat"=>$vat['Taxe']));
+		exit();   
+	   }
+
     //this is for adding sales 
     //products are divided up into categories for easier selection
     public function add_sales() {
@@ -303,8 +333,7 @@ class CustomerController extends AppController {
 		exit();
 		break;
 		 
-		case "DELETE":
-		
+		case "DELETE":		
 		$resp=$this->delete_product_back($product_id);
 		echo $resp;
 		exit();
