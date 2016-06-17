@@ -325,14 +325,87 @@ var backbone_stuff={
 	 tagname:'div',
 	 collection:ProductsCollection,
 	 template:_.template($('#transaction_template').html()),
+	 /**will find out later why this did not work
+	  * list_prod_table:$("#sales_info_trans table tbody"),**/
+	 events:{
+	 "change #search_item" : "addItem"	 
+	 },
+	 addItem(event){
+	
+	 event.preventDefault();
+	 var stock      = parseInt($('option:selected', $(event.currentTarget)).data('stock'));
+     var unit_price = parseFloat($('option:selected', $(event.currentTarget)).data('unit_price'));
+     var name =$('option:selected', $(event.currentTarget)).data('name');
+     var itemId =$('option:selected', $(event.currentTarget)).val();
+     var item_add=new ProductModel({id:itemId,product_name:name,stock_available:stock,selling_price:unit_price});	   
+     
+     //validation of transction object happens here
+     var validate_check=this.validate_trans(this.collection.meta("tran_type_send"),item_add);
+      
+     console.log(validate_check);
+	 if(validate_check.status=="true")
+	 {
+	 this.addModel(item_add);
+	 return true;
+	 }
+	 else if(validate_check.status=="false"){
+	 settings.enable_okbutt_mgdialg();
+     settings.show_message(validate_check.message); 
+	 }
+	 
+	 //check will be done here to see if this is the first item being added after which the subtotal etc will be added
+	 
+	 },
+	 
+	 validate_trans(tran_type,item){
+		 
+	 var status="true";
+	  //condition for sales
+     if(tran_type=="add_sales"){	  
+	  if(item.get("stock_available")<=0)
+	 {return {status:"false",message:"Stock Of "+item.get("product_name")+" Is "+item.get("stock_available")+"<br>Please Restock"}}       
+      
+      else if( item.get("stock_available")!==item.get("stock_available")  || item.get("selling_price")!==item.get("selling_price"))
+     { return {status:"false",message:"Error with Stock"}}
+     
+	 }
+    
+     //condition for receivables/invoice/reversal
+     else if(tran_type=="add_recv" || tran_type=="add_inv" || tran_type=="add_revr"){
+    
+      if( item.get("stock_available")!==item.get("stock_available")  || item.get("selling_price")!==item.get("selling_price"))
+     { return {status:"false",message:"Error with Stock"}}
+    
+    
+     }
+     
+	 //generic stuff to make sure duplicates are not in final transaction object after other checks
+     this.collection.each(function(model_data) {
+	 if(model_data.get("id")==item.get("id")){
+      status="false"
+     return { status:"false",message:"Item Aready Exists In List<br>Please Edit Below"} 
+	 }});
+	 
+	  if(status=="true")
+	 {return {status:"true",message:"validation succcesfull"}}
+	 else if (status=="false")
+	 {return {status:"false",message:"Item Aready Exists In List<br>Please Edit Below"}}
+	 
+	 }, 
+	 
+	 addModel(item_add){
+	 this.collection.add(item_add);
+	 var prodlist = new ProductTranItemView({model:item_add});
+	 $("#sales_info_trans table tbody").prepend(prodlist.render().$el);
+	 },	
+	  
 	 render:function(){
 	 var pass_data = {
 		suppliers:this.collection.meta('suppliers'),
 		reverse:this.collection.meta('reverse'), 
-		products:this.collection.toJSON(),
+		products:this.collection.meta('products'),
 		vat:this.collection.meta('vat')
 		};
-	 console.log(pass_data);
 	 var html = this.template(pass_data);
      this.$el.html(html);
      return this; 	 
@@ -340,7 +413,16 @@ var backbone_stuff={
 	 });
 	
 	//view for a single product list item which can be added to transaction
-	
+	 var  ProductTranItemView=Backbone.View.extend({
+	 tagName: 'tr',
+     id:function(){return this.model.get( 'id')},
+     template: _.template($('#transaction_item_tmp').html()),	
+	 render: function() {
+     var html = this.template(this.model.toJSON());
+     this.$el.html(html);
+     return this;
+	 }	
+	 });
 	
 	
 	//view for a single product_list_item
@@ -557,19 +639,25 @@ var backbone_stuff={
    // dynamically add item objects to div
      success:function(collection_data,response,options){
 		 
-		  collection_data.meta("tran_type_send",tran_type_send);
-		     if(collection_data.meta("tran_type_send")=="add_sales" || collection_data.meta("tran_type_send")=="add_inv"){
-               collection_data.meta("vat",collection_data.vat);
+	 var transact_inst = new ProductsCollection(); 	 
+	 transact_inst.meta("suppliers",collection_data.meta("suppliers"));
+	 transact_inst.meta("reverse",collection_data.meta("reverse"));
+	 transact_inst.meta("products",collection_data.meta("products"));
+	 transact_inst.meta("vat",collection_data.meta("vat"));
+	 transact_inst.meta("tran_type_send",tran_type_send);
+	 
+		     if(transact_inst.meta("tran_type_send")=="add_sales" || transact_inst.meta("tran_type_send")=="add_inv"){
+               transact_inst.meta("vat",collection_data.vat);
             // alert(transaction.vat_transaction);
           }
             else{
-		  collection_data.meta("vat",0.00);
+		  transact_inst.meta("vat",0.00);
           }
          
 		  var $trans_list = this.$("#product_trans").empty();
 		  settings.close_message_diag();
           settings.enable_okbutt_mgdialg();
-          var product = new TranListView({collection:collection_data});
+          var product = new TranListView({collection:transact_inst});
           $trans_list.append(product.render().$el);
           $(backbone_stuff.trans_diag).dialog({ title:title_diag});
           $(backbone_stuff.trans_diag).dialog('open');

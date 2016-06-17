@@ -62,11 +62,8 @@ combination of cakephp,underscore tempate
 
 
             <ul class='tableActions' style="width: 100%;">
-
-
-                <div name="sales_info" id="sales_info" style="width: 100%;">
-                    <table cellspacing="0" summary="">
-
+                <div name="sales_info_trans" id="sales_info_trans" style="width: 100%;">
+                    <table cellspacing="0">
                         <thead>
                         <th class="sortup">
                             Item
@@ -85,25 +82,17 @@ combination of cakephp,underscore tempate
                         <th ></th>
                         <th class="sortup"></th>
                         </thead>
-                        <tbody>                 
-                        </tbody>
+                        <tbody></tbody>
                     </table>
+                </div>
             </ul>
-
-
             <ul class='tableActions'>
                 <li>
                     <label>  </label> 
                 </li>
                 <li>
                 </li>
-
-
-
             </ul>
-
-
-
             <div class='clear'></div>
             <div class='corner left'></div>
             <div class='corner right'></div>
