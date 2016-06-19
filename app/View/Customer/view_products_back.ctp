@@ -26,8 +26,11 @@
 	   echo $this->element('backbone_temp/paginate_template');
 	   echo $this->element('backbone_temp/product_template');
 	   echo $this->element('backbone_temp/transaction_template');
-	   echo $this->element('backbone_temp/transaction_list_item');
-
+	   echo $this->element('backbone_temp/transaction_list_item');   
+	   echo $this->element('backbone_temp/subtotal_template');
+	   echo $this->element('backbone_temp/vat_template');
+	   echo $this->element('backbone_temp/total_template');
+	   echo $this->element('backbone_temp/amt_template');
 
 ?>
 

@@ -49,6 +49,12 @@ var backbone_stuff={
         $("#supplier_chzn").hide() ;  
 	 },
 	 
+	 //for rounding values
+	  round_value:function(num){
+        //   return num;
+        return  Math.round(num * 100) / 100
+    },
+	 
 	 
 	 //callback will have to be created which will be used for setting up the cancel and save functionality 
 	 dialog_save_action:function(){
@@ -139,10 +145,68 @@ var backbone_stuff={
 	 min_stock_notif:null,
 	 max_stock_notif:null,
 	 stock_available:0,
-	 archive_status:0
+	 archive_status:0,
+	 cost:0,
+	 quant_sale:0,
+	 new_stock:0
      },
-     categories:[]
-     });
+     categories:[],
+      //for  getting unit_price
+     getUnitPrice:function(){
+        return backbone_stuff.round_value(this.get("selling_price"));
+    },
+    //for getting old stock available
+    getStockAvail:function(){
+        return this.get("stock_available");
+    },
+    //for getting new cost of transaction for that particular item for the transaction
+    getCost:function(){
+        //  return this.unit_price*this.quant_sale;
+        return backbone_stuff.round_value(this.get("cost"));
+    },
+    
+    //this is  for gettng the new stock available for that particular item for the transaction
+    getNewStock:function(){
+        //  return this.stock_avail-this.quant_sale;
+        return this.get("new_stock");  
+    },
+    ///this is for getting the quantity of the item which will be sold
+    getQuant:function(){
+        return this.get("quant_sale");
+    },
+    
+    //this is for setting the quantity for a sale transaction
+    setQuantSale(quant_sale){
+		
+	  if(quant_sale < 1 || quant_sale > this.get("stock_available")){
+	
+            //alert("Please Enter Correct Quantity."+"Quantity Should Be More Than 0 And Less Than Or Equal To Quantity Available");
+            return "false";
+        }
+    else{
+   
+	transact_obj.meta("total_quantity_items",transact_obj.calculate_quan()-this.get("quant_sale"));
+	transact_obj.meta("total_transaction",transact_obj.calculate_money()-this.get("cost"));
+			
+    this.set("quant_sale",parseInt(quant_sale,10));     
+    this.set("cost",this.get("selling_price")*this.get("quant_sale"));
+    this.set("new_stock",this.get("stock_available")-this.get("quant_sale"));
+            
+    transact_obj.meta("total_transaction",backbone_stuff.round_value(transact_obj.meta("total_transaction")+(this.get("cost"))));              
+    transact_obj.meta("total_quantity_items",transact_obj.meta("total_quantity_items")+(this.get("quant_sale")));
+            
+    transact_obj.meta("vat_transaction",backbone_stuff.round_value((transact_obj.meta("vat_percentage")/100)*transact_obj.meta("total_transaction")));
+    transact_obj.meta("rtotal_transaction",backbone_stuff.round_value(transact_obj.meta("total_transaction")+transact_obj.meta("vat_transaction")));
+    transact_obj.meta("amount_balance_due",backbone_stuff.round_value(transact_obj.meta("rtotal_transaction")-transact_obj.meta("amount_paid")));
+     
+     return "true";        		
+		  
+		  }	
+	
+	}
+    
+    
+    });
 	   
 	//for setting up the categories model which will be used  to load up category information which can be used 
    // for setting up a edit/empty model for stuff to be done 
@@ -200,10 +264,75 @@ var backbone_stuff={
 	 this.meta('reverse',(data.reverse) ? data.reverse : {});
 	 this.meta('products',(data.products) ? data.products : {});
 	 this.meta('vat',(data.vat) ? data.vat : {});
-
      return data.products;
+     },
+    
+     //this is for calculating total quantity of current transaction
+    ///tricky stuff
+     calculate_quan:function(){
+     
+     var sum =0;      
+     this.each(function(model_data) {
+     sum=sum+model_data.get('quant_sale');
+     });
+     return sum;
+     },
+     
+     ///this is for calculating the total money value for the transaction
+     calculate_money:function(){
+     var cost =0;      
+     this.each(function(model_data) {
+     cost=cost+model_data.get('cost');
+     });
+     return cost;
+     },
+         //this is for removing an item from a transaction 
+       //and also for recalculating items  every stuff when items are removed
+     removeItem:function(item){
+		
+	 this.each(function(model_data) {
+	 if(model_data.get("id")==item.get("id")){
+	 this.meta("total_transaction",backbone_stuff.round_value(this.meta("total_transaction")-item.get("cost")));	
+     this.meta("total_quantity_items",this.meta("total_quantity_items")-parseInt(item.get("quant_sale"),10));
+      
+       //this is for recalculating the other stuff
+     this.meta("vat_transaction",backbone_stuff.round_value((this.meta("vat_percentage")/100)*this.meta("total_transaction")));
+     this.meta("rtotal_transaction",backbone_stuff.round_value(this.meta("total_transaction")+this.meta("vat_transaction")));
+     this.meta("amount_balance_due",backbone_stuff.round_value(this.meta("rtotal_transaction")-this.meta("amount_paid")));
+     this.recal_totl();
+     
+		}});
+	 },
+	 
+	 //for recalculating total
+	 recal_totl:function(){
+    
+        if( this.meta("tran_type_send")=="add_sales"){
+            this.meta("amount_paid")=backbone_stuff.round_value(amount_paid);
+            this.meta("amount_balance_due")=backbone_stuff.round_value(this.meta("rtotal_transaction")-this.meta("amount_paid"));
+        }
+
      }
+		
+       
 	 });		
+	
+	
+	
+	//models for the 4 subfields (subtotal,vat,total,amount_paid)
+	
+	
+	 var Stotal = Backbone.Model.extend({
+	  defaults:{ 
+	    total_trans_for_sale:0,	
+	    total_cost_for_sale:0.00
+		}	
+		});
+	
+	
+	
+	
+	
 	
 	
 	 //view for product_add item
@@ -319,6 +448,77 @@ var backbone_stuff={
 	 });
 	
 	
+	
+	  //view for subtotal_temp
+	   var subTotalView= Backbone.View.extend({
+	 tagName: 'tr',
+     className :"total_trans_tr",
+     template: _.template($('#subtotal_tmpl').html()),
+	 render:function(){	 
+		 	 
+	 var pass_data={
+	
+	 };
+	 //console.log(pass_data);
+     var html = this.template(pass_data);
+     this.$el.html(html);
+     return this;
+	 }
+	 });
+	  
+	  //view for vat
+	 var vatView= Backbone.View.extend({
+	 tagName: 'tr',
+     className :"total_vat_tr",
+     template: _.template($('#vat_tmpl').html()),
+	 render:function(){	 
+		 	 
+	 var pass_data={
+	
+	 };
+	 //console.log(pass_data);
+     var html = this.template(pass_data);
+     this.$el.html(html);
+     return this;
+	 }
+	 });
+	  
+	  //view for total_temp
+	 var rtotalView= Backbone.View.extend({
+	 tagName: 'tr',
+     className :"total_rtotal_tr",
+     template: _.template($('#total_tmpl').html()),
+	 render:function(){	 
+		 	 
+	 var pass_data={
+	
+	 };
+	 //console.log(pass_data);
+     var html = this.template(pass_data);
+     this.$el.html(html);
+     return this;
+	 }
+	 });
+	  
+	  
+	 //view for amount
+     var amtView= Backbone.View.extend({
+	 tagName: 'tr',
+     className :"rtotal_amt_tr",
+     template: _.template($('#amt_tmpl').html()),
+	 render:function(){	 
+		 	 
+	 var pass_data={
+	
+	 };
+	 //console.log(pass_data);
+     var html = this.template(pass_data);
+     this.$el.html(html);
+     return this;
+	 }
+	 }); 
+	
+	
 	//view for  whole transaction list 
 	
 	 var TranListView = Backbone.View.extend({
@@ -328,7 +528,7 @@ var backbone_stuff={
 	 /**will find out later why this did not work
 	  * list_prod_table:$("#sales_info_trans table tbody"),**/
 	 events:{
-	 "change #search_item" : "addItem"	 
+	 "change #search_item" : "addItem", 
 	 },
 	 addItem(event){
 	
@@ -342,11 +542,15 @@ var backbone_stuff={
      //validation of transction object happens here
      var validate_check=this.validate_trans(this.collection.meta("tran_type_send"),item_add);
       
-     console.log(validate_check);
 	 if(validate_check.status=="true")
 	 {
 	 this.addModel(item_add);
-	 return true;
+	 if(this.collection.meta("total_interface_status")=="false")
+	 {
+		 this.add_sub_interface(this.collection.meta("tran_type_send"));
+		 this.collection.meta("total_interface_status","true");
+	 }
+	 
 	 }
 	 else if(validate_check.status=="false"){
 	 settings.enable_okbutt_mgdialg();
@@ -355,6 +559,61 @@ var backbone_stuff={
 	 
 	 //check will be done here to see if this is the first item being added after which the subtotal etc will be added
 	 
+	 },
+	
+	//this is used for editing the subinterfaces
+	 edit_sub_interface(tran_type){
+		 
+	switch(tran_type){
+	
+	case "add_sales":
+	//add_sales_view will be changed to match the current value of the meta data
+	
+	break;	
+		
+	}	 
+		 
+	},
+	 
+	 //this will be used for adding the sub interface
+	 add_sub_interface(tran_type)
+	 {
+		 	 
+		 switch(tran_type) {
+			 
+            case "add_sales":
+            var sut_sub = new subTotalView();
+            var vat_sub = new vatView();
+            var rtv_sub = new rtotalView();
+            var amt_sub = new amtView();                  
+	        $("#sales_info_trans table tbody")
+	        .append(sut_sub.render().$el)
+	        .append(vat_sub.render().$el)
+	        .append(rtv_sub.render().$el)
+	        .append(amt_sub.render().$el);
+            break;
+		    
+		    case "add_recv":
+		    var sut_sub = new subTotalView();
+		    $("#sales_info_trans table tbody").append(sut_sub.render().$el)
+            break;
+            
+            case "add_inv":
+            var sut_sub = new subTotalView();
+            var vat_sub = new vatView();
+            var rtv_sub = new rtotalView();
+            $("#sales_info_trans table tbody")
+	        .append(sut_sub.render().$el)
+	        .append(vat_sub.render().$el)
+	        .append(rtv_sub.render().$el); 
+            break;
+            
+            case "add_revr":
+            var sut_sub = new subTotalView();
+		    $("#sales_info_trans table tbody").append(sut_sub.render().$el)
+            break;
+            
+        }		 
 	 },
 	 
 	 validate_trans(tran_type,item){
@@ -417,11 +676,59 @@ var backbone_stuff={
 	 tagName: 'tr',
      id:function(){return this.model.get( 'id')},
      template: _.template($('#transaction_item_tmp').html()),	
+     events:{
+	 "keyup .item_for_sale":"editItem"	 
+	 },
 	 render: function() {
      var html = this.template(this.model.toJSON());
      this.$el.html(html);
      return this;
-	 }	
+	 },
+	 editItem(event){
+		
+	 //perform validation before doing other stuff
+	 if (!(event.currentTarget.validity.valid)){
+         settings.enable_okbutt_mgdialg();
+         settings.show_message("Please Enter Correct Value");
+         $(event.currentTarget).val(this.model.getQuant());		 
+     }
+     else{		
+	 var return_info = this.model.setQuantSale($(event.currentTarget).val());	
+     if(return_info=="false"){  
+	 settings.enable_okbutt_mgdialg();
+	 settings.show_message("Stock iS Less Than Amount Needed.<br>Please Restock")				
+     $(event.currentTarget).val(this.model.getQuant());		 
+
+     }else if(return_info=="true"){
+      this.render();					
+	 
+	 }  
+ 
+	 }
+     
+     },
+     
+     //for sales transasctions
+     perform_sales_trans:function(){
+		
+		
+	 },
+	 
+	 //for receivables transactions
+	 perform_rec_trans:function(){
+		 
+	 },
+	 
+	 //for invoicing transactions
+	 perform_inv_trans:function(){
+		 
+	 },
+	 
+	 //for reversal transaction
+	 
+     
+     
+     
 	 });
 	
 	
@@ -639,52 +946,57 @@ var backbone_stuff={
    // dynamically add item objects to div
      success:function(collection_data,response,options){
 		 
-	 var transact_inst = new ProductsCollection(); 	 
-	 transact_inst.meta("suppliers",collection_data.meta("suppliers"));
-	 transact_inst.meta("reverse",collection_data.meta("reverse"));
-	 transact_inst.meta("products",collection_data.meta("products"));
-	 transact_inst.meta("vat",collection_data.meta("vat"));
-	 transact_inst.meta("tran_type_send",tran_type_send);
-	 
-		     if(transact_inst.meta("tran_type_send")=="add_sales" || transact_inst.meta("tran_type_send")=="add_inv"){
-               transact_inst.meta("vat",collection_data.vat);
+	//   var transact_inst = new ProductsCollection(); 	 
+	//   transact_inst.meta("suppliers",collection_data.meta("suppliers"));
+   //	 transact_inst.meta("reverse",collection_data.meta("reverse"));
+  //	 transact_inst.meta("products",collection_data.meta("products"));
+  //	 transact_inst.meta("vat",collection_data.meta("vat"));
+	 collection_data.reset();
+	 collection_data.meta("tran_type_send",tran_type_send);
+	 collection_data.meta("total_transaction",0);
+	 collection_data.meta("total_quantity_items",0);
+	 collection_data.meta("amount_paid",0.00);
+	 collection_data.meta("amount_balance_due",0.00);
+	 collection_data.meta("total_interface_status","false");
+	 collection_data.meta("vat_transaction",0.00);
+	 collection_data.meta("rtotal_transaction",0);
+	 collection_data.meta("reverse_reason","");
+	 collection_data.meta("supplier",0);
+
+
+	 if(collection_data.meta("tran_type_send")=="add_sales" || collection_data.meta("tran_type_send")=="add_inv"){
+               collection_data.meta("vat",collection_data.vat);
             // alert(transaction.vat_transaction);
-          }
+     }
             else{
-		  transact_inst.meta("vat",0.00);
-          }
+		  collection_data.meta("vat",0.00);
+     }
          
-		  var $trans_list = this.$("#product_trans").empty();
-		  settings.close_message_diag();
-          settings.enable_okbutt_mgdialg();
-          var product = new TranListView({collection:transact_inst});
-          $trans_list.append(product.render().$el);
-          $(backbone_stuff.trans_diag).dialog({ title:title_diag});
-          $(backbone_stuff.trans_diag).dialog('open');
-          backbone_stuff.init_chosen();
-          $(".ul_chz").css({"text-align":"center","margin-left":"120px !important","margin-bottom":"5px !important"});
-          $(".chzn-container").css({"width":"340px !important"});        
+	var $trans_list = this.$("#product_trans").empty();
+	settings.close_message_diag();
+	settings.enable_okbutt_mgdialg();
+	var product = new TranListView({collection:transact_obj});
+	$trans_list.append(product.render().$el);
+	$(backbone_stuff.trans_diag).dialog({ title:title_diag});
+	$(backbone_stuff.trans_diag).dialog('open');
+	backbone_stuff.init_chosen();
+	$(".ul_chz").css({"text-align":"center","margin-left":"120px !important","margin-bottom":"5px !important"});
+	$(".chzn-container").css({"width":"340px !important"});        
                   
-           if(collection_data.meta("tran_type_send")=="add_revr")
-         {
-            $("ul.sp_ul").remove() ;
-            $("#reverse_reason_chzn").show() ;
-         }
-        else  if(collection_data.meta("tran_type_send")=="add_recv")
-         {
-            $("ul.rs_ul").remove() ;
-            $("#supplier_chzn").show();  
-         }
-        else
-         {
-            $("ul.sp_ul").remove() ;
-            $("ul.rs_ul").remove() ;
-         }
-          
-          
-          
-		 }
-		})
+	if(collection_data.meta("tran_type_send")=="add_revr"){
+	$("ul.sp_ul").remove() ;
+	$("#reverse_reason_chzn").show() ;
+    }
+    else  if(collection_data.meta("tran_type_send")=="add_recv"){
+    $("ul.rs_ul").remove() ;
+    $("#supplier_chzn").show();  
+    }
+    else{
+    $("ul.sp_ul").remove() ;
+    $("ul.rs_ul").remove() ;
+    }
+    }
+	})
 	 
 	 },
      
