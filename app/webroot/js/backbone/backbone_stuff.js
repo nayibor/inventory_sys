@@ -338,7 +338,7 @@ var backbone_stuff={
      
      removeItem:function(item){
 		
-    subtotal.set("total_trans_for_sale", subtotal.get("total_trans_for_sale")-item.get("quant_sale"));
+    subtotal.set("total_trans_for_sale", subtotal.get("total_trans_for_sale")-parseInt(item.get("quant_sale")));
     subtotal.set("total_cost_for_sale",backbone_stuff.round_value(subtotal.get("total_cost_for_sale")-(item.get("cost"))));
     
     vattotal.set("vat_transaction",backbone_stuff.round_value((vattotal.get("vat_percentage")/100)*subtotal.get("total_cost_for_sale")));
@@ -757,6 +757,7 @@ var backbone_stuff={
 	 event.preventDefault();
 	 settings.confirmation_action=function(){
 	 transact_obj.remove(_this_product.model);
+	 settings.confirmation_action=function(){};
 	 
 	 };
 	 
@@ -779,6 +780,7 @@ var backbone_stuff={
 	 
 	 var return_info="";
 	 
+	 console.log(transact_obj.meta("tran_type_send"));
 	 switch(transact_obj.meta("tran_type_send")) {
 				
 	 case "add_sales":
@@ -799,7 +801,7 @@ var backbone_stuff={
 	 
      if(return_info=="false"){  
 	 settings.enable_okbutt_mgdialg();
-	 settings.show_message("Stock iS Less Than Amount Needed.<br>Please Restock")				
+	 settings.show_message("Check Stock for Transaction Type")				
      $(event.currentTarget).val(this.model.getQuant());		 
      }else if(return_info=="true"){
       this.render();					
@@ -983,29 +985,7 @@ var backbone_stuff={
 
      },
      
-     
-     /*
-     * this is for the transaction object
-     **a flag is passed through which will be used for setting the kind of transaction it is
-     **this will influence the kind of info which will be shown in the tran page
-      tran_type,taxes,product,supplier,reverse reason
-     *tran_type/taxes will be a property of the collection/transaction object
-     * 
-     *product list will be passed into the transaction template and shown regardless of transaction type
-     *supplier list will be passed into the transaction template(may show depending on transaction)
-     *reverse reason list will be passed into the transaction template(may show depending on transaction)
-     
-     
-     *subtotal is a property of the collection/transaction object(view will be created and added on first adds)
-     *taxes/vat will be a property of the the collection/transaction object(view will be created and added on first adds)
-	 *total  will be a property of the the collection/transaction object(view will be created and added on first adds)
-	 *amount will be a property of the the collection/transaction object(view will be created and added on first adds)
-	 
-	 
-	 *product item will be passed into transaction template when item is selected (dynamicall added through created view) 
-		
-     * 
-     */
+  
      openTran:function(event){
 		 
 	 var tran_type_send=event.currentTarget.type;	 
