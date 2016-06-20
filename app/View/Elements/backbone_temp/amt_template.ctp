@@ -25,9 +25,9 @@
 <td></td>
 <td></td>
 <td style="font-weight: bold;">AMOUNT PAID</td>
-<td><input type="number" step="0.00001" min="0" class="amount_paid_in"></td>
-<td class="amount_paid">0</td>
+<td><input type="number" step="0.00001" min="0" class="amount_paid_in" value="<%= amount_paid %>"></td>
+<td class="amount_paid"></td>
 <td>AMOUNT DUE</td>
 <td></td>
-<td class="amount_due_for_sale">0</td>
+<td class="amount_due_for_sale"><%= amount_due_for_sale %></td>
 </script>

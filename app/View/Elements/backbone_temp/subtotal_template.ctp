@@ -23,8 +23,8 @@
 <td></td>
 <td></td>
 <td style="font-weight: bold;">SUB TOTAL</td>
-<td class="total_trans_for_sale">0</td>
-<td class="total_cost_for_sale">0</td>
+<td class="total_trans_for_sale"><%= total_trans_for_sale %></td>
+<td class="total_cost_for_sale"><%= total_cost_for_sale %></td>
 <td></td>
 <td></td>
 <td></td>

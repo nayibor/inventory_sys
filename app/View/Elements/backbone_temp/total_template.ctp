@@ -25,7 +25,7 @@
 <td></td>
 <td style="font-weight: bold;">TOTAL</td>
 <td class="rtotal_sale"></td>
-<td class="rtotal_transaction">0</td>
+<td class="rtotal_transaction"><%=  rtotal_transaction %></td>
 <td></td>
 <td></td>
 <td></td>

@@ -24,9 +24,9 @@
 <script type="text/template" id="vat_tmpl">
 <td></td>
 <td></td>
-<td style="font-weight: bold;">VAT 2.5 %</td>
+<td style="font-weight: bold;">VAT <%= vat_percentage+"%" %>  </td>
 <td class="total_vat_quant_sale"></td>
-<td class="vat_transaction"></td>
+<td class="vat_transaction"><%= vat_transaction %></td>
 <td></td>
 <td></td>
 <td></td>

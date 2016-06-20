@@ -185,27 +185,74 @@ var backbone_stuff={
         }
     else{
    
-	transact_obj.meta("total_quantity_items",transact_obj.calculate_quan()-this.get("quant_sale"));
-	transact_obj.meta("total_transaction",transact_obj.calculate_money()-this.get("cost"));
-			
+
+	subtotal.set("total_trans_for_sale",transact_obj.calculate_quan()-this.get("quant_sale"));
+    subtotal.set("total_cost_for_sale",transact_obj.calculate_money()-this.get("cost"));
+    			
     this.set("quant_sale",parseInt(quant_sale,10));     
     this.set("cost",this.get("selling_price")*this.get("quant_sale"));
     this.set("new_stock",this.get("stock_available")-this.get("quant_sale"));
-            
-    transact_obj.meta("total_transaction",backbone_stuff.round_value(transact_obj.meta("total_transaction")+(this.get("cost"))));              
-    transact_obj.meta("total_quantity_items",transact_obj.meta("total_quantity_items")+(this.get("quant_sale")));
-            
-    transact_obj.meta("vat_transaction",backbone_stuff.round_value((transact_obj.meta("vat_percentage")/100)*transact_obj.meta("total_transaction")));
-    transact_obj.meta("rtotal_transaction",backbone_stuff.round_value(transact_obj.meta("total_transaction")+transact_obj.meta("vat_transaction")));
-    transact_obj.meta("amount_balance_due",backbone_stuff.round_value(transact_obj.meta("rtotal_transaction")-transact_obj.meta("amount_paid")));
+    
+    subtotal.set("total_trans_for_sale", subtotal.get("total_trans_for_sale")+this.get("quant_sale"));
+    subtotal.set("total_cost_for_sale",backbone_stuff.round_value(subtotal.get("total_cost_for_sale")+(this.get("cost"))));
+    vattotal.set("vat_transaction",backbone_stuff.round_value(( vattotal.get("vat_percentage")/100)*subtotal.get("total_cost_for_sale")));
+	rtotal.set("rtotal_transaction",backbone_stuff.round_value(subtotal.get("total_cost_for_sale")+vattotal.get("vat_transaction")));
+    amttotal.set("amount_due_for_sale",backbone_stuff.round_value(rtotal.get("rtotal_transaction")-amttotal.get("amount_paid")));       
      
      return "true";        		
 		  
 		  }	
 	
+	},
+	setQuantRecv(quant_sale){
+	
+		if(quant_sale < 1){
+	
+            //alert("Please Enter Correct Quantity."");
+            return "false";
+    }
+    else{		
+	subtotal.set("total_trans_for_sale",transact_obj.calculate_quan()-this.get("quant_sale"));
+    subtotal.set("total_cost_for_sale",transact_obj.calculate_money()-this.get("cost"));
+   
+    this.set("quant_sale",parseInt(quant_sale,10));     
+    this.set("cost",this.get("selling_price")*this.get("quant_sale"));
+    this.set("new_stock",this.get("stock_available")+this.get("quant_sale"));
+    
+	subtotal.set("total_trans_for_sale", subtotal.get("total_trans_for_sale")+this.get("quant_sale"));
+    subtotal.set("total_cost_for_sale",backbone_stuff.round_value(subtotal.get("total_cost_for_sale")+(this.get("cost"))));
+    vattotal.set("vat_transaction",backbone_stuff.round_value(( vattotal.get("vat_percentage")/100)*subtotal.get("total_cost_for_sale")));
+	rtotal.set("rtotal_transaction",backbone_stuff.round_value(subtotal.get("total_cost_for_sale")+vattotal.get("vat_transaction")));
+     return "true";        				
 	}
-    
-    
+		
+	},
+	
+	
+	setQuantInv(quant_sale){
+	
+	 if(quant_sale < 1 ){
+	
+            //alert("Please Enter Correct Quantity."+"Quantity Should Be More Than 0 And Less Than Or Equal To Quantity Available");
+            return "false";
+    }
+        else{   
+	subtotal.set("total_trans_for_sale",transact_obj.calculate_quan()-this.get("quant_sale"));
+    subtotal.set("total_cost_for_sale",transact_obj.calculate_money()-this.get("cost"));
+   
+    this.set("quant_sale",parseInt(quant_sale,10));     
+    this.set("cost",this.get("selling_price")*this.get("quant_sale"));
+    this.set("new_stock",this.get("stock_available"));
+   		
+   	subtotal.set("total_trans_for_sale", subtotal.get("total_trans_for_sale")+this.get("quant_sale"));
+    subtotal.set("total_cost_for_sale",backbone_stuff.round_value(subtotal.get("total_cost_for_sale")+(this.get("cost"))));
+    vattotal.set("vat_transaction",backbone_stuff.round_value(( vattotal.get("vat_percentage")/100)*subtotal.get("total_cost_for_sale")));
+	rtotal.set("rtotal_transaction",backbone_stuff.round_value(subtotal.get("total_cost_for_sale")+vattotal.get("vat_transaction")));
+     return "true";        							
+	}
+		
+		
+	}
     });
 	   
 	//for setting up the categories model which will be used  to load up category information which can be used 
@@ -288,51 +335,55 @@ var backbone_stuff={
      },
          //this is for removing an item from a transaction 
        //and also for recalculating items  every stuff when items are removed
+     
      removeItem:function(item){
 		
-	 this.each(function(model_data) {
-	 if(model_data.get("id")==item.get("id")){
-	 this.meta("total_transaction",backbone_stuff.round_value(this.meta("total_transaction")-item.get("cost")));	
-     this.meta("total_quantity_items",this.meta("total_quantity_items")-parseInt(item.get("quant_sale"),10));
-      
-       //this is for recalculating the other stuff
-     this.meta("vat_transaction",backbone_stuff.round_value((this.meta("vat_percentage")/100)*this.meta("total_transaction")));
-     this.meta("rtotal_transaction",backbone_stuff.round_value(this.meta("total_transaction")+this.meta("vat_transaction")));
-     this.meta("amount_balance_due",backbone_stuff.round_value(this.meta("rtotal_transaction")-this.meta("amount_paid")));
-     this.recal_totl();
-     
-		}});
-	 },
-	 
-	 //for recalculating total
-	 recal_totl:function(){
+    subtotal.set("total_trans_for_sale", subtotal.get("total_trans_for_sale")-item.get("quant_sale"));
+    subtotal.set("total_cost_for_sale",backbone_stuff.round_value(subtotal.get("total_cost_for_sale")-(item.get("cost"))));
     
-        if( this.meta("tran_type_send")=="add_sales"){
-            this.meta("amount_paid")=backbone_stuff.round_value(amount_paid);
-            this.meta("amount_balance_due")=backbone_stuff.round_value(this.meta("rtotal_transaction")-this.meta("amount_paid"));
-        }
-
-     }
-		
-       
+    vattotal.set("vat_transaction",backbone_stuff.round_value((vattotal.get("vat_percentage")/100)*subtotal.get("total_cost_for_sale")));
+	rtotal.set("rtotal_transaction",backbone_stuff.round_value(subtotal.get("total_cost_for_sale")+vattotal.get("vat_transaction")));
+    amttotal.set("amount_due_for_sale",backbone_stuff.round_value(rtotal.get("rtotal_transaction")-amttotal.get("amount_paid")));       
+   	
+  	
+	 }       
 	 });		
 	
 	
 	
 	//models for the 4 subfields (subtotal,vat,total,amount_paid)
-	
-	
-	 var Stotal = Backbone.Model.extend({
-	  defaults:{ 
+	//this is for the subtotal stuf
+	    var Stotal = Backbone.Model.extend({
+	    defaults:{ 
 	    total_trans_for_sale:0,	
 	    total_cost_for_sale:0.00
 		}	
 		});
 	
+   //this is for the vat suff	
+	    var vatModel = Backbone.Model.extend({
+	    defaults:{ 
+	    vat_percentage:0,	
+	    vat_transaction : 0
+		}	
+		}); 
 	
-	
-	
-	
+//this is for the rtotal part
+		var rTotal = Backbone.Model.extend({
+	    defaults:{ 
+	    rtotal_transaction : 0
+		}	
+		});
+
+//this is for the amount part 
+	    var amtTotal = Backbone.Model.extend({
+	    defaults:{ 
+	    amount_due_for_sale:0,
+	    amount_paid:0
+		}	
+		});
+  
+
 	
 	
 	 //view for product_add item
@@ -454,11 +505,11 @@ var backbone_stuff={
 	 tagName: 'tr',
      className :"total_trans_tr",
      template: _.template($('#subtotal_tmpl').html()),
-	 render:function(){	 
-		 	 
-	 var pass_data={
-	
-	 };
+     initialize:function(){	 
+	 this.listenTo(this.model, 'change', this.render);	 
+	 },
+	 render:function(){	 		 	 
+	 var pass_data=this.model.toJSON();
 	 //console.log(pass_data);
      var html = this.template(pass_data);
      this.$el.html(html);
@@ -471,11 +522,11 @@ var backbone_stuff={
 	 tagName: 'tr',
      className :"total_vat_tr",
      template: _.template($('#vat_tmpl').html()),
+      initialize:function(){ 
+	 this.listenTo(this.model, 'change', this.render);	 
+	 },
 	 render:function(){	 
-		 	 
-	 var pass_data={
-	
-	 };
+	 var pass_data=this.model.toJSON();
 	 //console.log(pass_data);
      var html = this.template(pass_data);
      this.$el.html(html);
@@ -488,11 +539,11 @@ var backbone_stuff={
 	 tagName: 'tr',
      className :"total_rtotal_tr",
      template: _.template($('#total_tmpl').html()),
+      initialize:function(){ 
+	 this.listenTo(this.model, 'change', this.render);	 
+	 },
 	 render:function(){	 
-		 	 
-	 var pass_data={
-	
-	 };
+	 var pass_data=this.model.toJSON();;
 	 //console.log(pass_data);
      var html = this.template(pass_data);
      this.$el.html(html);
@@ -505,16 +556,33 @@ var backbone_stuff={
      var amtView= Backbone.View.extend({
 	 tagName: 'tr',
      className :"rtotal_amt_tr",
+     events:{
+		 "keyup .amount_paid_in": "perfAmount"	 
+		 },
+		 
      template: _.template($('#amt_tmpl').html()),
+      initialize:function(){
+	 
+	 this.listenTo(this.model, 'change', this.render);	 
+	 },
 	 render:function(){	 
-		 	 
-	 var pass_data={
-	
-	 };
-	 //console.log(pass_data);
-     var html = this.template(pass_data);
+	 var pass_data=this.model.toJSON();;
+	 var html = this.template(pass_data);
      this.$el.html(html);
      return this;
+	 },
+	 perfAmount:function(event){
+	 event.preventDefault();
+	 
+	  if (event.currentTarget.value=="" || event.currentTarget.value<0){
+         settings.enable_okbutt_mgdialg();
+         settings.show_message("Please Enter Correct Value");
+         $(event.currentTarget).val(this.model.get("amount_paid"));		 
+     }
+     else{
+	 this.model.set("amount_paid", $(event.currentTarget).val()); 
+	 this.model.set("amount_due_for_sale",backbone_stuff.round_value(rtotal.get("rtotal_transaction")-this.model.get("amount_paid")));		 
+	 }
 	 }
 	 }); 
 	
@@ -524,11 +592,19 @@ var backbone_stuff={
 	 var TranListView = Backbone.View.extend({
 	 tagname:'div',
 	 collection:ProductsCollection,
+	 initialize:function(){
+	 this.listenTo(this.collection, 'remove', this.resetStuff);	 
+	 },
 	 template:_.template($('#transaction_template').html()),
 	 /**will find out later why this did not work
 	  * list_prod_table:$("#sales_info_trans table tbody"),**/
 	 events:{
 	 "change #search_item" : "addItem", 
+	 },
+	 
+	 resetStuff:function(model){
+	 
+	 this.collection.removeItem(model);
 	 },
 	 addItem(event){
 	
@@ -561,19 +637,6 @@ var backbone_stuff={
 	 
 	 },
 	
-	//this is used for editing the subinterfaces
-	 edit_sub_interface(tran_type){
-		 
-	switch(tran_type){
-	
-	case "add_sales":
-	//add_sales_view will be changed to match the current value of the meta data
-	
-	break;	
-		
-	}	 
-		 
-	},
 	 
 	 //this will be used for adding the sub interface
 	 add_sub_interface(tran_type)
@@ -581,11 +644,12 @@ var backbone_stuff={
 		 	 
 		 switch(tran_type) {
 			 
-            case "add_sales":
-            var sut_sub = new subTotalView();
-            var vat_sub = new vatView();
-            var rtv_sub = new rtotalView();
-            var amt_sub = new amtView();                  
+        
+	       case "add_sales":
+            var sut_sub = new subTotalView({model:subtotal});
+            var vat_sub = new vatView({model:vattotal});
+            var rtv_sub = new rtotalView({model:rtotal});
+            var amt_sub = new amtView({model:amttotal});                  
 	        $("#sales_info_trans table tbody")
 	        .append(sut_sub.render().$el)
 	        .append(vat_sub.render().$el)
@@ -594,14 +658,14 @@ var backbone_stuff={
             break;
 		    
 		    case "add_recv":
-		    var sut_sub = new subTotalView();
+		    var sut_sub = new subTotalView({model:subtotal});
 		    $("#sales_info_trans table tbody").append(sut_sub.render().$el)
             break;
             
             case "add_inv":
-            var sut_sub = new subTotalView();
-            var vat_sub = new vatView();
-            var rtv_sub = new rtotalView();
+            var sut_sub = new subTotalView({model:subtotal});
+            var vat_sub = new vatView({model:vattotal});
+            var rtv_sub = new rtotalView({model:rtotal});
             $("#sales_info_trans table tbody")
 	        .append(sut_sub.render().$el)
 	        .append(vat_sub.render().$el)
@@ -609,7 +673,7 @@ var backbone_stuff={
             break;
             
             case "add_revr":
-            var sut_sub = new subTotalView();
+            var sut_sub = new subTotalView({model:subtotal});
 		    $("#sales_info_trans table tbody").append(sut_sub.render().$el)
             break;
             
@@ -675,30 +739,68 @@ var backbone_stuff={
 	 var  ProductTranItemView=Backbone.View.extend({
 	 tagName: 'tr',
      id:function(){return this.model.get( 'id')},
+     initialize:function(){
+	 this.listenTo(this.model, 'remove', this.remove);
+	 },
      template: _.template($('#transaction_item_tmp').html()),	
      events:{
-	 "keyup .item_for_sale":"editItem"	 
+	 "keyup .item_for_sale":"editItem",
+	 "click .remove_item":"removeItem"
 	 },
 	 render: function() {
      var html = this.template(this.model.toJSON());
      this.$el.html(html);
      return this;
 	 },
+	 removeItem(event){	 
+	 _this_product=this;
+	 event.preventDefault();
+	 settings.confirmation_action=function(){
+	 transact_obj.remove(_this_product.model);
+	 
+	 };
+	 
+     settings.show_confirmation("Do You Want To Remove "+this.model.get("product_name")+" ?");
+	 
+		 
+	 },
+	 
 	 editItem(event){
 		
+	 event.preventDefault();
 	 //perform validation before doing other stuff
-	 if (!(event.currentTarget.validity.valid)){
+	 //!(document.getElementById($(this).attr("id")).checkValidity())
+	 if (event.currentTarget.value==""){
          settings.enable_okbutt_mgdialg();
          settings.show_message("Please Enter Correct Value");
          $(event.currentTarget).val(this.model.getQuant());		 
      }
      else{		
-	 var return_info = this.model.setQuantSale($(event.currentTarget).val());	
+	 
+	 var return_info="";
+	 
+	 switch(transact_obj.meta("tran_type_send")) {
+				
+	 case "add_sales":
+		return_info = this.model.setQuantSale($(event.currentTarget).val());	
+		break;
+        case "add_recv":
+        return_info = this.model.setQuantRecv($(event.currentTarget).val());	
+        break;
+        case "add_inv":
+        return_info = this.model.setQuantInv($(event.currentTarget).val());	
+        break;
+        case "add_revr":
+        return_info = this.model.setQuantInv($(event.currentTarget).val());		
+        break;	 
+		
+	 }
+
+	 
      if(return_info=="false"){  
 	 settings.enable_okbutt_mgdialg();
 	 settings.show_message("Stock iS Less Than Amount Needed.<br>Please Restock")				
      $(event.currentTarget).val(this.model.getQuant());		 
-
      }else if(return_info=="true"){
       this.render();					
 	 
@@ -706,29 +808,8 @@ var backbone_stuff={
  
 	 }
      
-     },
-     
-     //for sales transasctions
-     perform_sales_trans:function(){
-		
-		
-	 },
-	 
-	 //for receivables transactions
-	 perform_rec_trans:function(){
-		 
-	 },
-	 
-	 //for invoicing transactions
-	 perform_inv_trans:function(){
-		 
-	 },
-	 
-	 //for reversal transaction
-	 
-     
-     
-     
+     }
+ 
 	 });
 	
 	
@@ -952,24 +1033,21 @@ var backbone_stuff={
   //	 transact_inst.meta("products",collection_data.meta("products"));
   //	 transact_inst.meta("vat",collection_data.meta("vat"));
 	 collection_data.reset();
+	 subtotal.set({"total_trans_for_sale":0,"total_cost_for_sale":0.00});	 
+	 rtotal.set({"rtotal_transaction":0.00});
+	 vattotal.set({"vat_transaction":0.00});
+	 amttotal.set({"amount_paid":0,"amount_due_for_sale":0.00});
+	 
 	 collection_data.meta("tran_type_send",tran_type_send);
-	 collection_data.meta("total_transaction",0);
-	 collection_data.meta("total_quantity_items",0);
-	 collection_data.meta("amount_paid",0.00);
-	 collection_data.meta("amount_balance_due",0.00);
 	 collection_data.meta("total_interface_status","false");
-	 collection_data.meta("vat_transaction",0.00);
-	 collection_data.meta("rtotal_transaction",0);
 	 collection_data.meta("reverse_reason","");
 	 collection_data.meta("supplier",0);
 
-
 	 if(collection_data.meta("tran_type_send")=="add_sales" || collection_data.meta("tran_type_send")=="add_inv"){
-               collection_data.meta("vat",collection_data.vat);
-            // alert(transaction.vat_transaction);
+               vattotal.set("vat_percentage",collection_data.meta("vat").vat_value);
      }
             else{
-		  collection_data.meta("vat",0.00);
+               vattotal.set("vat_percentage",0);
      }
          
 	var $trans_list = this.$("#product_trans").empty();
@@ -1103,6 +1181,10 @@ var backbone_stuff={
 	 var catData=new CatCollection();
 	 var product_list = new ProductsCollection();
 	 var transact_obj = new ProductsCollection();
+	 var subtotal=new Stotal();
+	 var vattotal= new vatModel();
+	 var rtotal = new rTotal();
+	 var amttotal= new amtTotal();
 	 var productView  = new ProductListView({collection: product_list});
 	 product_list.fetch(backbone_stuff.default_ajax);
 	 //product_list.reset(<%= @product_list.to_json %>);
