@@ -2,7 +2,8 @@
 
 
 ## What is this repository for? ##
-
+**this is an experimental version using backbone.**  
+**please use master branch for correct version.**   
 This repository is for an  open source web based  inventory system.   
 This inventory system can be used for entities/institutions which have multiple sites but need a centralized system for monitoring inventory across all sites.   
 It can be used for
